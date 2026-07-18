@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="sla_urgent" model="it.support.sla">
+            <field name="name">Urgent SLA</field>
+            <field name="priority">3</field>
+            <field name="response_time_hours">1</field>
+            <field name="resolution_time_hours">4</field>
+            <field name="description">Urgent tickets: 1h first response, 4h resolution</field>
+        </record>
+
+        <record id="sla_high" model="it.support.sla">
+            <field name="name">High Priority SLA</field>
+            <field name="priority">2</field>
+            <field name="response_time_hours">2</field>
+            <field name="resolution_time_hours">8</field>
+            <field name="description">High priority tickets: 2h first response, 8h resolution</field>
+        </record>
+
+        <record id="sla_normal" model="it.support.sla">
+            <field name="name">Normal SLA</field>
+            <field name="priority">1</field>
+            <field name="response_time_hours">4</field>
+            <field name="resolution_time_hours">24</field>
+            <field name="description">Normal tickets: 4h first response, 24h resolution</field>
+        </record>
+
+        <record id="sla_low" model="it.support.sla">
+            <field name="name">Low Priority SLA</field>
+            <field name="priority">0</field>
+            <field name="response_time_hours">8</field>
+            <field name="resolution_time_hours">48</field>
+            <field name="description">Low priority tickets: 8h first response, 48h resolution</field>
+        </record>
+
+    </data>
+</odoo>

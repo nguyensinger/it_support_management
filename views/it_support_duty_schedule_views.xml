@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_it_support_duty_schedule_list" model="ir.ui.view">
+        <field name="name">it.support.duty.schedule.list</field>
+        <field name="model">it.support.duty.schedule</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="date"/>
+                <field name="start_time" widget="float_time"/>
+                <field name="end_time" widget="float_time"/>
+                <field name="agent_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_it_support_duty_schedule_form" model="ir.ui.view">
+        <field name="name">it.support.duty.schedule.form</field>
+        <field name="model">it.support.duty.schedule</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="date"/>
+                        <field name="agent_id"/>
+                        <field name="start_time" widget="float_time"/>
+                        <field name="end_time" widget="float_time"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_it_support_duty_schedule_calendar" model="ir.ui.view">
+        <field name="name">it.support.duty.schedule.calendar</field>
+        <field name="model">it.support.duty.schedule</field>
+        <field name="arch" type="xml">
+            <calendar date_start="date" color="agent_id" string="Duty Schedule" quick_create="0">
+                <field name="agent_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_it_support_duty_schedule_search" model="ir.ui.view">
+        <field name="name">it.support.duty.schedule.search</field>
+        <field name="model">it.support.duty.schedule</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="agent_id"/>
+                <field name="date"/>
+                <group>
+                    <filter string="Agent" name="group_agent" context="{'group_by':'agent_id'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by':'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_it_support_duty_schedule" model="ir.actions.act_window">
+        <field name="name">Duty Schedule</field>
+        <field name="res_model">it.support.duty.schedule</field>
+        <field name="view_mode">calendar,list,form</field>
+        <field name="search_view_id" ref="view_it_support_duty_schedule_search"/>
+    </record>
+
+</odoo>

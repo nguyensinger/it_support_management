@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- SLA List View -->
+    <record id="it_support_sla_view_list" model="ir.ui.view">
+        <field name="name">it.support.sla.list</field>
+        <field name="model">it.support.sla</field>
+        <field name="arch" type="xml">
+            <list string="SLA Policies">
+                <field name="name"/>
+                <field name="priority"/>
+                <field name="response_time_hours"/>
+                <field name="resolution_time_hours"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- SLA Form View -->
+    <record id="it_support_sla_view_form" model="ir.ui.view">
+        <field name="name">it.support.sla.form</field>
+        <field name="model">it.support.sla</field>
+        <field name="arch" type="xml">
+            <form string="SLA Policy">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="priority"/>
+                        <field name="active"/>
+                    </group>
+                    <group string="Time Targets">
+                        <field name="response_time_hours"/>
+                        <field name="resolution_time_hours"/>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- SLA Action -->
+    <record id="it_support_sla_action" model="ir.actions.act_window">
+        <field name="name">SLA Policies</field>
+        <field name="res_model">it.support.sla</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Ticket SLA view - add SLA fields to ticket form -->
+    <record id="it_support_ticket_view_form_sla" model="ir.ui.view">
+        <field name="name">it.support.ticket.form.sla</field>
+        <field name="model">it.support.ticket</field>
+        <field name="inherit_id" ref="it_support_ticket_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='closed_date']" position="after">
+                <field name="first_response_date" readonly="1"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group string="SLA Status" col="4">
+                    <field name="sla_id" readonly="1"/>
+                    <field name="sla_response_deadline" readonly="1"/>
+                    <field name="sla_resolution_deadline" readonly="1"/>
+                    <field name="sla_response_status" readonly="1"
+                        decoration-success="sla_response_status == 'ok'"
+                        decoration-danger="sla_response_status == 'breached'"
+                        decoration-muted="sla_response_status == 'pending'"/>
+                    <field name="sla_resolution_status" readonly="1"
+                        decoration-success="sla_resolution_status == 'ok'"
+                        decoration-danger="sla_resolution_status == 'breached'"
+                        decoration-muted="sla_resolution_status == 'pending'"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Ticket List - add SLA columns -->
+    <record id="it_support_ticket_view_list_sla" model="ir.ui.view">
+        <field name="name">it.support.ticket.list.sla</field>
+        <field name="model">it.support.ticket</field>
+        <field name="inherit_id" ref="it_support_ticket_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='agent_id']" position="after">
+                <field name="sla_response_status"
+                    decoration-success="sla_response_status == 'ok'"
+                    decoration-danger="sla_response_status == 'breached'"
+                    decoration-muted="sla_response_status == 'pending'"
+                    optional="show"/>
+                <field name="sla_resolution_status"
+                    decoration-success="sla_resolution_status == 'ok'"
+                    decoration-danger="sla_resolution_status == 'breached'"
+                    decoration-muted="sla_resolution_status == 'pending'"
+                    optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

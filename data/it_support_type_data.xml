@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="support_type_online" model="it.support.type">
+            <field name="name">Online Support</field>
+            <field name="mode">online</field>
+            <field name="sequence">10</field>
+            <field name="price_per_hour">80</field>
+            <field name="first_block_minutes">15</field>
+            <field name="block_minutes">15</field>
+            <field name="min_charge_blocks">1</field>
+            <field name="description">Remote support via UltraViewer/TeamViewer or chat. Billed in 15-minute blocks throughout, minimum 15 minutes per session.</field>
+        </record>
+
+        <record id="support_type_onsite" model="it.support.type">
+            <field name="name">Onsite Support</field>
+            <field name="mode">onsite</field>
+            <field name="sequence">20</field>
+            <field name="price_per_hour">145</field>
+            <field name="first_block_minutes">60</field>
+            <field name="block_minutes">15</field>
+            <field name="min_charge_blocks">1</field>
+            <field name="description">On-site support at the customer's office. The first hour is always billed as a full hour; any time beyond that is billed in 15-minute increments.</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,28 @@
+# --- Secrets - KHÔNG BAO GIỜ commit các file này ---
+firebase-service-account.json
+serviceAccountKey.json
+*.pem
+*.key
+.env
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.Python
+.venv/
+venv/
+
+# --- Odoo runtime ---
+*.log
+.odoo_pid
+
+# --- Editor / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+project_context.docx

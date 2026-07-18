@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="demo_customer_abc" model="res.partner">
+            <field name="name">ABC Company</field>
+            <field name="is_company">True</field>
+            <field name="email">contact@abc.com</field>
+        </record>
+
+        <record id="demo_end_user_1" model="it.support.end.user">
+            <field name="name">John Smith</field>
+            <field name="email">jsmith@abc.com</field>
+            <field name="department">Accounting</field>
+            <field name="customer_id" ref="demo_customer_abc"/>
+        </record>
+
+        <record id="demo_device_1" model="it.customer.device">
+            <field name="name">PC-ACCOUNTING-01</field>
+            <field name="customer_id" ref="demo_customer_abc"/>
+            <field name="user_id" ref="demo_end_user_1"/>
+            <field name="os_info">Windows 11 Pro</field>
+            <field name="ultraview_id">123456789</field>
+        </record>
+
+        <record id="demo_ticket_1" model="it.support.ticket">
+            <field name="customer_id" ref="demo_customer_abc"/>
+            <field name="device_id" ref="demo_device_1"/>
+            <field name="end_user_id" ref="demo_end_user_1"/>
+            <field name="subject">Cannot print Excel file</field>
+            <field name="support_type_id" ref="support_type_online"/>
+            <field name="priority">1</field>
+        </record>
+
+    </data>
+</odoo>

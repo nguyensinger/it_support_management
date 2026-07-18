@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_it_support_session_list" model="ir.ui.view">
+        <field name="name">it.support.session.list</field>
+        <field name="model">it.support.session</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="ticket_id"/>
+                <field name="customer_id"/>
+                <field name="agent_id"/>
+                <field name="start_time"/>
+                <field name="end_time"/>
+                <field name="duration" sum="Total Hours"/>
+                <field name="support_mode"/>
+                <field name="resolution_status" widget="badge" decoration-success="resolution_status == 'resolved'" decoration-warning="resolution_status == 'partially_resolved'" decoration-danger="resolution_status in ('not_resolved', 'escalated')"/>
+                <field name="note"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_it_support_session_search" model="ir.ui.view">
+        <field name="name">it.support.session.search</field>
+        <field name="model">it.support.session</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="ticket_id"/>
+                <field name="agent_id"/>
+                <field name="customer_id"/>
+                <filter string="Running" name="running" domain="[('state','=','running')]"/>
+                <group>
+                    <filter string="IT Agent" name="group_agent" context="{'group_by':'agent_id'}"/>
+                    <filter string="Customer" name="group_customer" context="{'group_by':'customer_id'}"/>
+                    <filter string="Mode" name="group_mode" context="{'group_by':'support_mode'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_it_support_session" model="ir.actions.act_window">
+        <field name="name">Working Sessions</field>
+        <field name="res_model">it.support.session</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_it_support_session_search"/>
+    </record>
+
+</odoo>

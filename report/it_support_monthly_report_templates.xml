@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_it_support_monthly_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="summary">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>IT Support Monthly Summary - Month <span t-field="summary.month"/>/<span t-field="summary.year"/></h2>
+                        <p>
+                            <strong>Customer:</strong> <span t-field="summary.customer_id.name"/><br/>
+                            <strong>Ticket Count:</strong> <span t-field="summary.ticket_count"/>
+                        </p>
+
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Ticket No.</th>
+                                    <th>Subject</th>
+                                    <th>Mode</th>
+                                    <th class="text-end">Actual Hours</th>
+                                    <th class="text-end">Billable Hours</th>
+                                    <th class="text-end">Amount</th>
+                                    <th>Closed Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="summary.ticket_ids" t-as="ticket">
+                                    <td><span t-field="ticket.name"/></td>
+                                    <td><span t-field="ticket.subject"/></td>
+                                    <td><span t-field="ticket.actual_support_modes"/></td>
+                                    <td class="text-end"><span t-field="ticket.total_duration"/></td>
+                                    <td class="text-end"><span t-field="ticket.billable_hours"/></td>
+                                    <td class="text-end">
+                                        <span t-field="ticket.amount_total"
+                                              t-options="{'widget': 'monetary', 'display_currency': summary.currency_id}"/>
+                                    </td>
+                                    <td><span t-field="ticket.closed_date"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="table table-sm" style="width: 50%; margin-left: auto;">
+                            <tr>
+                                <td><strong>Total Onsite Hours</strong></td>
+                                <td class="text-end"><span t-field="summary.total_onsite_hours"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Online Hours</strong></td>
+                                <td class="text-end"><span t-field="summary.total_online_hours"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Onsite Amount</strong></td>
+                                <td class="text-end">
+                                    <span t-field="summary.total_onsite_amount"
+                                          t-options="{'widget': 'monetary', 'display_currency': summary.currency_id}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Online Amount</strong></td>
+                                <td class="text-end">
+                                    <span t-field="summary.total_online_amount"
+                                          t-options="{'widget': 'monetary', 'display_currency': summary.currency_id}"/>
+                                </td>
+                            </tr>
+                            <tr class="border-top">
+                                <td><strong>Grand Total</strong></td>
+                                <td class="text-end">
+                                    <strong>
+                                        <span t-field="summary.total_amount"
+                                              t-options="{'widget': 'monetary', 'display_currency': summary.currency_id}"/>
+                                    </strong>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

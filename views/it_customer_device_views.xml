@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_it_customer_device_list" model="ir.ui.view">
+        <field name="name">it.customer.device.list</field>
+        <field name="model">it.customer.device</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="user_id"/>
+                <field name="ultraview_id"/>
+                <field name="ip_address"/>
+                <field name="last_seen"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'online'"
+                       decoration-muted="state == 'offline'"
+                       decoration-warning="state == 'unknown'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_it_customer_device_form" model="ir.ui.view">
+        <field name="name">it.customer.device.form</field>
+        <field name="model">it.customer.device</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="online,offline"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_tickets" type="object"
+                                class="oe_stat_button" icon="fa-ticket">
+                            <field name="ticket_count" widget="statinfo" string="Tickets"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Hostname"/></h1>
+                    </div>
+                    <group>
+                        <group string="Customer &amp; User">
+                            <field name="customer_id"/>
+                            <field name="user_id"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Remote Support">
+                            <field name="ultraview_id"/>
+                            <field name="agent_api_key" password="True"/>
+                            <field name="last_seen"/>
+                        </group>
+                    </group>
+                    <group string="Hardware / Software Information">
+                        <group>
+                            <field name="serial_number"/>
+                            <field name="os_info"/>
+                            <field name="cpu_info"/>
+                            <field name="ram_gb"/>
+                            <field name="disk_info"/>
+                        </group>
+                        <group>
+                            <field name="mac_address"/>
+                            <field name="ip_address"/>
+                            <field name="install_date"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_it_customer_device_search" model="ir.ui.view">
+        <field name="name">it.customer.device.search</field>
+        <field name="model">it.customer.device</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="ultraview_id"/>
+                <filter string="Online" name="online" domain="[('state','=','online')]"/>
+                <filter string="Offline" name="offline" domain="[('state','=','offline')]"/>
+                <group>
+                    <filter string="Customer" name="group_customer" context="{'group_by':'customer_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_it_customer_device" model="ir.actions.act_window">
+        <field name="name">Customer Devices</field>
+        <field name="res_model">it.customer.device</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_it_customer_device_search"/>
+    </record>
+
+</odoo>

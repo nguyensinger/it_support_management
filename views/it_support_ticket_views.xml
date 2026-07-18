@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ===== Wizard: End Session (note + resolution status bắt buộc) ===== -->
+    <record id="view_it_support_session_end_wizard_form" model="ir.ui.view">
+        <field name="name">it.support.session.end.wizard.form</field>
+        <field name="model">it.support.session.end.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="ticket_id" invisible="1"/>
+                <group>
+                    <field name="resolution_status"/>
+                    <field name="note" placeholder="Describe the work performed..."/>
+                </group>
+                <footer>
+                    <button string="End Session" type="object" name="action_confirm" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_it_support_session_end_wizard" model="ir.actions.act_window">
+        <field name="name">End Session</field>
+        <field name="res_model">it.support.session.end.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- ===== Wizard: Reply to Customer (tách biệt khung chat/chatter) ===== -->
+    <record id="view_it_support_ticket_reply_wizard_form" model="ir.ui.view">
+        <field name="name">it.support.ticket.reply.wizard.form</field>
+        <field name="model">it.support.ticket.reply.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="ticket_id" invisible="1"/>
+                <group>
+                    <field name="body" nolabel="1" placeholder="Type your reply to the customer..."/>
+                </group>
+                <footer>
+                    <button string="Send Reply" type="object" name="action_send" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_it_support_ticket_reply_wizard" model="ir.actions.act_window">
+        <field name="name">Reply to Customer</field>
+        <field name="res_model">it.support.ticket.reply.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="it_support_ticket_view_list" model="ir.ui.view">
+        <field name="name">it.support.ticket.list</field>
+        <field name="model">it.support.ticket</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="priority == '3'" decoration-warning="priority == '2'">
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="subject"/>
+                <field name="support_type_id" string="Initial Type" optional="show"/>
+                <field name="actual_support_modes" string="Billed As" optional="show"/>
+                <field name="agent_id"/>
+                <field name="priority" widget="priority" optional="show"/>
+                <field name="total_duration" sum="Total Hours"/>
+                <field name="billable_hours" sum="Total Billable Hours"/>
+                <field name="amount_total" sum="Total Amount"/>
+                <field name="is_invoiced" widget="boolean_toggle"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-info="state == 'in_progress'"
+                       decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_it_support_ticket_kanban" model="ir.ui.view">
+        <field name="name">it.support.ticket.kanban</field>
+        <field name="model">it.support.ticket</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="priority"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="d-flex justify-content-between">
+                                <strong><field name="name"/></strong>
+                                <field name="priority" widget="priority"/>
+                            </div>
+                            <div><field name="subject"/></div>
+                            <div class="text-muted">
+                                <field name="customer_id"/>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <field name="support_type_id" widget="badge"/>
+                                <field name="agent_id" widget="many2one_avatar_user"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="it_support_ticket_view_form" model="ir.ui.view">
+        <field name="name">it.support.ticket.form</field>
+        <field name="model">it.support.ticket</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_assign_to_me" string="Assign to Me" type="object"
+                            class="oe_highlight" invisible="state != 'new'"/>
+                    <button name="action_start_session" string="Start" type="object"
+                            class="oe_highlight"
+                            invisible="state in ('done','cancelled') or has_running_session"/>
+                    <button name="%(action_it_support_session_end_wizard)d" string="End" type="action"
+                            class="oe_highlight"
+                            context="{'default_ticket_id': id}"
+                            invisible="state in ('done','cancelled') or not has_running_session"/>
+                    <button name="%(action_it_support_ticket_reply_wizard)d" string="Reply to Customer" type="action"
+                            context="{'default_ticket_id': id}"
+                            invisible="state in ('done','cancelled')"/>
+                    <button name="action_pause" string="Pause" type="object"
+                            invisible="state != 'in_progress' or has_running_session"/>
+                    <button name="action_done" string="Mark Done" type="object"
+                            invisible="state in ('done','cancelled')"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state in ('done','cancelled')"/>
+                    <button name="action_recompute_billing" string="Recompute Billing" type="object"
+                            help="Refresh billable hours/amount using the current pricing on Support Types. Use this after changing pricing if this ticket was already closed before the price change."/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="new,assigned,in_progress,done"/>
+                </header>
+                <sheet>
+                    <field name="has_running_session" invisible="1"/>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2><field name="subject" placeholder="Ticket subject"/></h2>
+                    </div>
+                    <group>
+                        <group string="Customer">
+                            <field name="customer_id"/>
+                            <field name="device_id"/>
+                            <field name="end_user_id"/>
+                        </group>
+                        <group string="Handling">
+                            <field name="support_type_id"/>
+                            <field name="agent_id"/>
+                            <field name="priority" widget="priority"/>
+                            <field name="closed_date" readonly="1" invisible="not closed_date"/>
+                        </group>
+                    </group>
+                    <group string="Time &amp; Cost Summary" col="4">
+                        <field name="total_duration"/>
+                        <field name="billable_hours"/>
+                        <field name="amount_total"/>
+                        <field name="is_invoiced"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Description">
+                            <field name="description"/>
+                        </page>
+                        <page string="Working Sessions (Start/End)">
+                            <field name="session_ids">
+                                <list>
+                                    <field name="agent_id"/>
+                                    <field name="start_time"/>
+                                    <field name="end_time"/>
+                                    <field name="duration"/>
+                                    <field name="support_mode"/>
+                                    <field name="resolution_status" widget="badge"/>
+                                    <field name="state"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_it_support_ticket_search" model="ir.ui.view">
+        <field name="name">it.support.ticket.search</field>
+        <field name="model">it.support.ticket</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="subject"/>
+                <field name="agent_id"/>
+                <filter string="My Tickets" name="my_tickets" domain="[('agent_id','=',uid)]"/>
+                <filter string="Unassigned" name="unassigned" domain="[('agent_id','=',False)]"/>
+                <filter string="In Progress" name="in_progress" domain="[('state','=','in_progress')]"/>
+                <filter string="Done" name="done" domain="[('state','=','done')]"/>
+                <filter string="Not Invoiced" name="not_invoiced" domain="[('is_invoiced','=',False),('state','=','done')]"/>
+                <group>
+                    <filter string="Customer" name="group_customer" context="{'group_by':'customer_id'}"/>
+                    <filter string="Support Type" name="group_support_type" context="{'group_by':'support_type_id'}"/>
+                    <filter string="IT Agent" name="group_agent" context="{'group_by':'agent_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_it_support_ticket" model="ir.actions.act_window">
+        <field name="name">Support Tickets</field>
+        <field name="res_model">it.support.ticket</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_it_support_ticket_search"/>
+        <field name="context">{'search_default_my_tickets': 0}</field>
+    </record>
+
+</odoo>

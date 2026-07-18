@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_it_support_end_user_list" model="ir.ui.view">
+        <field name="name">it.support.end.user.list</field>
+        <field name="model">it.support.end.user</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="department"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <field name="device_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_it_support_end_user_form" model="ir.ui.view">
+        <field name="name">it.support.end.user.form</field>
+        <field name="model">it.support.end.user</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Full Name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="customer_id"/>
+                            <field name="department"/>
+                            <field name="job_title"/>
+                        </group>
+                        <group>
+                            <field name="email"/>
+                            <field name="phone"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Devices Used">
+                            <field name="device_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="ultraview_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_it_support_end_user" model="ir.actions.act_window">
+        <field name="name">IT Users (End Users)</field>
+        <field name="res_model">it.support.end.user</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

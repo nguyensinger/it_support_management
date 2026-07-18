@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_partner_form_it_support" model="ir.ui.view">
+        <field name="name">res.partner.form.it.support</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_it_devices" type="object"
+                        class="oe_stat_button" icon="fa-desktop"
+                        invisible="not is_company">
+                    <field name="device_count" widget="statinfo" string="IT Devices"/>
+                </button>
+                <button name="action_view_it_tickets" type="object"
+                        class="oe_stat_button" icon="fa-ticket"
+                        invisible="not is_company">
+                    <field name="it_ticket_count" widget="statinfo" string="IT Tickets"/>
+                </button>
+            </xpath>
+            <field name="name" position="after">
+                <field name="preferred_agent_id" invisible="not is_company"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>
