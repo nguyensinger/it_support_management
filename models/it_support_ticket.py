@@ -273,7 +273,6 @@ class ItSupportTicket(models.Model):
             agent_group = self.env.ref('it_support_management.group_it_support_agent')
             agents = self.env['res.users'].search([('group_ids', 'in', agent_group.id)])
             recipients = agents.mapped('partner_id')
-
         if recipients:
             # Add the agents as followers if not already, so they keep receiving
             # notifications for further messages on this ticket, not just the first one.
@@ -304,6 +303,18 @@ class ItSupportTicket(models.Model):
             body=short_body or '(tin nhắn mới)',
             data={'ticket_id': str(self.id), 'event': 'new_message'},
         )
+        # Realtime notification cho Desktop Agent App (khác cơ chế FCM ở trên vốn
+        # chỉ dành cho Mobile Agent App). Phát trên dispatch channel (channel chung
+        # mọi agent đang trực đều subscribe kể cả khi đang ở màn hình danh sách,
+        # chưa mở đúng ticket này) kèm agent_id để client tự lọc, chỉ hiện thông
+        # báo desktop cho đúng agent đang được assign ticket đó.
+        self.env['bus.bus']._sendone(self._get_dispatch_channel(), 'it_support_customer_message', {
+            'ticket_id': self.id,
+            'ticket_name': self.name,
+            'customer': self.customer_id.name,
+            'agent_id': self.agent_id.id if self.agent_id else None,
+            'preview': short_body or '(tin nhắn mới)',
+        })
 
 
     # ---------- SLA Compute ----------

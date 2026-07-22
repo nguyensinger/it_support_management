@@ -409,6 +409,7 @@ class ItSupportApiController(http.Controller):
         ticket = request.env['it.support.ticket'].sudo().browse(ticket_id)
         if not ticket.exists():
             return _json_error('Ticket not found.', status=404)
+        running_session = ticket.session_ids.filtered(lambda s: s.state == 'running')[:1]
         return _json_ok({
             'id': ticket.id,
             'name': ticket.name,
@@ -424,7 +425,10 @@ class ItSupportApiController(http.Controller):
             'total_duration': ticket.total_duration,
             'billable_hours': ticket.billable_hours,
             'amount_total': ticket.amount_total,
-            'has_running_session': bool(ticket.session_ids.filtered(lambda s: s.state == 'running')),
+            'has_running_session': bool(running_session),
+            # UTC naive datetime string (Odoo convention), e.g. "2026-07-17 10:30:00".
+            # Client is responsible for treating this as UTC when computing elapsed time.
+            'running_session_start': str(running_session.start_time) if running_session else None,
         })
 
     @http.route('/api/v1/ticket/<int:ticket_id>/assign', type='jsonrpc', auth='it_support_api_key',
