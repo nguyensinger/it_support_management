@@ -22,3 +22,7 @@ access_it_support_session_end_wizard_agent,it.support.session.end.wizard.agent,m
 access_it_support_session_end_wizard_manager,it.support.session.end.wizard.manager,model_it_support_session_end_wizard,group_it_support_manager,1,1,1,1
 access_it_support_ticket_reply_wizard_agent,it.support.ticket.reply.wizard.agent,model_it_support_ticket_reply_wizard,group_it_support_agent,1,1,1,0
 access_it_support_ticket_reply_wizard_manager,it.support.ticket.reply.wizard.manager,model_it_support_ticket_reply_wizard,group_it_support_manager,1,1,1,1
+access_it_support_booking_request_public,it.support.booking.request.public,model_it_support_booking_request,base.group_public,0,0,1,0
+access_it_support_booking_request_portal,it.support.booking.request.portal,model_it_support_booking_request,base.group_portal,0,0,1,0
+access_it_support_booking_request_agent,it.support.booking.request.agent,model_it_support_booking_request,group_it_support_agent,1,1,1,0
+access_it_support_booking_request_manager,it.support.booking.request.manager,model_it_support_booking_request,group_it_support_manager,1,1,1,1

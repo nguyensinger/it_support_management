@@ -48,6 +48,7 @@ IT support service management module for customers:
         'views/res_partner_views.xml',
         'views/it_support_sla_views.xml',
         'views/it_support_menus.xml',
+        'views/it_support_booking_request_views.xml',
         # report
         'report/it_support_monthly_report.xml',
         'report/it_support_monthly_report_templates.xml',

@@ -14,3 +14,4 @@ from . import it_support_generate_summary_wizard
 from . import it_support_agent_device
 from . import it_support_sla
 from . import it_support_fcm_service
+from . import it_support_booking_request
