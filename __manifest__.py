@@ -25,6 +25,7 @@ IT support service management module for customers:
         'contacts',
         'account',
         'product',
+        'website',
     ],
     'data': [
         # security
@@ -49,6 +50,7 @@ IT support service management module for customers:
         'views/it_support_sla_views.xml',
         'views/it_support_menus.xml',
         'views/it_support_booking_request_views.xml',
+        'views/website_booking_templates.xml',
         # report
         'report/it_support_monthly_report.xml',
         'report/it_support_monthly_report_templates.xml',
