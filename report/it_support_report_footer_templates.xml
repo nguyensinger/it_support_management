@@ -8,10 +8,12 @@
          (e.g. "Records retained per CRA requirements (6 years)"). -->
     <template id="external_layout_standard_dynamic_footer_name" inherit_id="web.external_layout_standard">
         <xpath expr="//div[@t-field='company.report_footer']" position="replace">
-            <div class="flex-grow-1 text-start me-2">
+            <div class="flex-grow-1 text-start me-2" style="display: flex; flex-wrap: wrap; column-gap: 0.25em;">
+                <style>.o_it_support_footer_note p { display: inline; margin: 0; }</style>
                 <span t-field="company.name"/>
                 <t t-if="company.report_footer and not is_html_empty(company.report_footer)">
-                    — <span t-field="company.report_footer"/>
+                    <span>—</span>
+                    <span class="o_it_support_footer_note" t-field="company.report_footer"/>
                 </t>
             </div>
         </xpath>
