@@ -26,6 +26,7 @@ IT support service management module for customers:
         'account',
         'product',
         'website',
+        'l10n_ca',
     ],
     'data': [
         # security
