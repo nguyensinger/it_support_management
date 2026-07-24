@@ -12,7 +12,7 @@
             <div class="mt-3" t-if="it_support_ticket_count">
                 <strong>Payment Methods</strong>
                 <p class="mb-2">
-                    e-Transfer: payments@vmtech.ca &#8226; Cheque payable to: VMTech / Hải Computer
+                    e-Transfer: payments@vmtech.ca &#8226; Cheque payable to: VMTech
                 </p>
                 <strong>Notes</strong>
                 <p class="mb-2">
