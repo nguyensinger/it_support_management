@@ -17,7 +17,7 @@
     <menuitem id="menu_it_support_master_data" name="Master Data" parent="menu_it_support_root" sequence="30"/>
     <menuitem id="menu_it_support_devices" name="Devices" parent="menu_it_support_master_data"
               action="action_it_customer_device" sequence="10"/>
-    <menuitem id="menu_it_support_end_users" name="IT Users" parent="menu_it_support_master_data"
+    <menuitem id="menu_it_support_end_users" name="End Users" parent="menu_it_support_master_data"
               action="action_it_support_end_user" sequence="20"/>
     <menuitem id="menu_it_support_types" name="Support Types &amp; Pricing" parent="menu_it_support_master_data"
               action="action_it_support_type" sequence="30"

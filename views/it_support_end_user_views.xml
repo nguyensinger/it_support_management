@@ -54,7 +54,7 @@
     </record>
 
     <record id="action_it_support_end_user" model="ir.actions.act_window">
-        <field name="name">IT Users (End Users)</field>
+        <field name="name">End Users</field>
         <field name="res_model">it.support.end.user</field>
         <field name="view_mode">list,form</field>
     </record>
