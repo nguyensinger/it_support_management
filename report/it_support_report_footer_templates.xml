@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Prepends the company name (live from res.company.name) before the
+         report_footer note, instead of it being typed as static text inside
+         report_footer itself - so it stays correct if the company's name
+         ever changes. report_footer should now hold just the trailing note
+         (e.g. "Records retained per CRA requirements (6 years)"). -->
+    <template id="external_layout_standard_dynamic_footer_name" inherit_id="web.external_layout_standard">
+        <xpath expr="//div[@t-field='company.report_footer']" position="replace">
+            <div class="flex-grow-1 text-start me-2">
+                <span t-field="company.name"/>
+                <t t-if="company.report_footer and not is_html_empty(company.report_footer)">
+                    — <span t-field="company.report_footer"/>
+                </t>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>
