@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Adds a Payment Methods / Notes block to the standard Odoo invoice PDF,
+         but only for invoices generated from an IT Support monthly summary -
+         other invoices (if VMTech ever bills something unrelated through the
+         normal Accounting app) are left untouched. -->
+    <template id="report_invoice_document_it_support" inherit_id="account.report_invoice_document">
+        <xpath expr="//div[@id='payment_term']" position="after">
+            <t t-set="it_support_ticket_count"
+               t-value="o.env['it.support.ticket'].sudo().search_count([('invoice_line_id', 'in', o.invoice_line_ids.ids)])"/>
+            <div class="mt-3" t-if="it_support_ticket_count">
+                <strong>Payment Methods</strong>
+                <p class="mb-2">
+                    e-Transfer: payments@vmtech.ca &#8226; Cheque payable to: VMTech / Hải Computer
+                </p>
+                <strong>Notes</strong>
+                <p class="mb-2">
+                    Thank you for your business! Please contact us within 7 days of receipt for any billing questions.
+                </p>
+                <p class="text-muted" style="font-size: 85%;">
+                    * IT support services (labour) are not subject to BC PST. If hardware or equipment is
+                    sold on a future invoice, 7% PST typically applies to that portion.
+                </p>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

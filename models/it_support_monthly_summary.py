@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from dateutil.relativedelta import relativedelta
+
+_logger = logging.getLogger(__name__)
 
 
 class ItSupportMonthlySummary(models.Model):
@@ -153,6 +157,22 @@ class ItSupportMonthlySummary(models.Model):
         if not self.ticket_ids:
             raise UserError(_('There are no tickets to invoice.'))
 
+        # IT support labour is not subject to BC PST (only tangible goods/certain
+        # services are) - only GST applies. If hardware ever gets billed through
+        # this flow, it will need its own line with the combined GST+PST tax
+        # instead of this one.
+        gst_tax = self.env['account.tax'].search([
+            ('company_id', '=', self.env.company.id),
+            ('type_tax_use', '=', 'sale'),
+            ('amount_type', '=', 'percent'),
+            ('amount', '=', 5.0),
+            ('country_id.code', '=', 'CA'),
+        ], limit=1)
+        if not gst_tax:
+            _logger.warning(
+                'No 5%% CA GST sale tax found for company %s - invoice lines will be created '
+                'without tax. Set up the Canadian Chart of Accounts first.', self.env.company.name)
+
         invoice_lines = []
         line_ticket_map = []  # keeps track of the ticket matching each created line
         for ticket in self.ticket_ids:
@@ -163,11 +183,13 @@ class ItSupportMonthlySummary(models.Model):
                 qty_hours = support_type.compute_billable_hours(session.duration)
                 if qty_hours <= 0:
                     continue
+                date_label = session.start_time.strftime('%Y-%m-%d') if session.start_time else ''
+                mode_label = 'Onsite' if session.support_mode == 'onsite' else 'Online'
                 invoice_lines.append((0, 0, {
-                    'name': f"[{ticket.name}] {ticket.subject} - {support_type.name} "
-                            f"({session.start_time.strftime('%d/%m/%Y')})",
+                    'name': f"{date_label} — {ticket.subject} (Ticket {ticket.name}, {mode_label})",
                     'quantity': qty_hours,
                     'price_unit': support_type.price_per_hour,
+                    'tax_ids': [(6, 0, gst_tax.ids)],
                 }))
                 line_ticket_map.append(ticket)
 
@@ -187,7 +209,7 @@ class ItSupportMonthlySummary(models.Model):
 
         # Link invoice_line_id back to the matching ticket (following line creation order)
         # account.move.line usually preserves the creation order in invoice_line_ids
-        product_lines = move.invoice_line_ids.filtered(lambda l: not l.display_type)
+        product_lines = move.invoice_line_ids.filtered(lambda l: l.display_type == 'product')
         for ticket, line in zip(line_ticket_map, product_lines):
             if not ticket.invoice_line_id:
                 ticket.invoice_line_id = line.id
