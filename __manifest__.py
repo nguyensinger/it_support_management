@@ -59,7 +59,6 @@ IT support service management module for customers:
         'report/it_support_monthly_report.xml',
         'report/it_support_monthly_report_templates.xml',
         'report/it_support_invoice_report_templates.xml',
-        'report/it_support_report_footer_templates.xml',
     ],
     'demo': [
         'data/it_support_demo.xml',
