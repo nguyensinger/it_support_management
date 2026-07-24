@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from . import ir_http
 from . import res_partner
+from . import res_company
 from . import it_support_end_user
 from . import it_customer_device
 from . import it_support_type

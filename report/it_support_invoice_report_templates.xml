@@ -12,7 +12,10 @@
             <div class="mt-3" t-if="it_support_ticket_count">
                 <strong>Payment Methods</strong>
                 <p class="mb-2">
-                    e-Transfer: payments@vmtech.ca &#8226; Cheque payable to: VMTech
+                    <t t-if="o.company_id.etransfer_email">
+                        e-Transfer: <span t-esc="o.company_id.etransfer_email"/> &#8226;
+                    </t>
+                    Cheque payable to: <span t-esc="o.company_id.name"/>
                 </p>
                 <strong>Notes</strong>
                 <p class="mb-2">
