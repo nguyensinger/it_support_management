@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- The "Powered by Odoo - Create a free website" footer link is injected by
+         core (web.brand_promotion, wrapped with t-if="not editable" in
+         website.layout) so it never shows up while editing in the Website
+         Builder - it can only be removed here, not through the visual editor. -->
+    <template id="remove_footer_brand_promotion" inherit_id="website.layout" name="Remove Powered by Odoo footer link">
+        <xpath expr="//t[@t-call='web.brand_promotion']" position="replace"/>
+    </template>
+
+</odoo>

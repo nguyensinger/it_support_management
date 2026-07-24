@@ -28,15 +28,70 @@
                                     </div>
                                 </t>
 
-                                <t t-if="error_fields">
+                                <t t-if="'captcha' in error_fields">
+                                    <div class="alert alert-danger" role="alert">
+                                        We couldn't verify this submission wasn't sent by a bot. Please try again.
+                                    </div>
+                                </t>
+                                <t t-elif="error_fields">
                                     <div class="alert alert-danger" role="alert">
                                         Please fill in the required field(s):
                                         <t t-esc="', '.join(error_fields)"/>
                                     </div>
                                 </t>
 
-                                <form action="/booking/submit" method="post" class="o_mark_required">
+                                <form method="get" action="/booking" class="row g-2 align-items-end mb-4">
+                                    <div class="col-auto">
+                                        <label class="form-label" for="booking_date">Choose a date</label>
+                                        <input type="date" class="form-control" id="booking_date" name="date"
+                                               t-att-value="selected_date" t-att-min="today_str"
+                                               onchange="this.form.submit()"/>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button type="submit" class="btn btn-outline-secondary">Check Availability</button>
+                                    </div>
+                                </form>
+
+                                <t t-if="not slots">
+                                    <div class="alert alert-info" role="alert">
+                                        No available time slots on <t t-esc="selected_date"/> (business hours only,
+                                        Monday-Friday). Please choose another date above.
+                                    </div>
+                                </t>
+
+                                <t t-if="slots">
+                                <form action="/booking/submit" method="post" class="o_mark_required" data-captcha="booking">
                                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <input type="hidden" name="date" t-att-value="selected_date"/>
+
+                                    <div class="mb-3">
+                                        <label class="form-label" for="booking_start_hour">Available Time (<t t-esc="selected_date"/>)</label>
+                                        <select class="form-select" id="booking_start_hour" name="start_hour" required="required">
+                                            <option value="">Select a time...</option>
+                                            <t t-foreach="slots" t-as="slot">
+                                                <option t-att-value="slot['value']"
+                                                        t-att-selected="slot['value'] == formatted.get('start_hour') or None"
+                                                        t-esc="slot['label']"/>
+                                            </t>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="company_type"
+                                                   id="booking_type_person" value="person"
+                                                   t-att-checked="formatted.get('company_type', 'person') == 'person' or None"
+                                                   onchange="document.getElementById('booking_company_wrap').classList.toggle('d-none', this.value !== 'company')"/>
+                                            <label class="form-check-label" for="booking_type_person">Person</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="company_type"
+                                                   id="booking_type_company" value="company"
+                                                   t-att-checked="formatted.get('company_type') == 'company' or None"
+                                                   onchange="document.getElementById('booking_company_wrap').classList.toggle('d-none', this.value !== 'company')"/>
+                                            <label class="form-check-label" for="booking_type_company">Company</label>
+                                        </div>
+                                    </div>
 
                                     <div class="mb-3">
                                         <label class="form-label" for="booking_name">Full Name</label>
@@ -44,7 +99,7 @@
                                                required="required" t-att-value="formatted.get('name')"/>
                                     </div>
 
-                                    <div class="mb-3">
+                                    <div id="booking_company_wrap" t-attf-class="mb-3 #{'' if formatted.get('company_type') == 'company' else 'd-none'}">
                                         <label class="form-label" for="booking_company">Company</label>
                                         <input type="text" class="form-control" id="booking_company" name="company_name"
                                                t-att-value="formatted.get('company_name')"/>
@@ -64,18 +119,22 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label" for="booking_datetime">Preferred Date/Time</label>
-                                        <input type="text" class="form-control" id="booking_datetime" name="preferred_datetime"
-                                               placeholder="e.g. Monday July 28, 2pm" t-att-value="formatted.get('preferred_datetime')"/>
-                                    </div>
-
-                                    <div class="mb-3">
                                         <label class="form-label" for="booking_message">What do you need help with?</label>
                                         <textarea class="form-control" id="booking_message" name="message" rows="4" t-esc="formatted.get('message') or ''"></textarea>
                                     </div>
 
+                                    <p class="mb-2">
+                                        <small class="text-muted">
+                                            Protected by reCAPTCHA,
+                                            <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a>
+                                            &amp;
+                                            <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a>
+                                            apply.
+                                        </small>
+                                    </p>
                                     <button type="submit" class="btn btn-primary">Send Booking Request</button>
                                 </form>
+                                </t>
                             </div>
                         </div>
                     </div>
