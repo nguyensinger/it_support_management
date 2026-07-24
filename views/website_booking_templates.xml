@@ -71,8 +71,7 @@
 
                                     <div class="mb-3">
                                         <label class="form-label" for="booking_message">What do you need help with?</label>
-                                        <textarea class="form-control" id="booking_message" name="message" rows="4"
-                                                  t-esc="formatted.get('message')"/>
+                                        <textarea class="form-control" id="booking_message" name="message" rows="4" t-esc="formatted.get('message')"></textarea>
                                     </div>
 
                                     <button type="submit" class="btn btn-primary">Send Booking Request</button>
