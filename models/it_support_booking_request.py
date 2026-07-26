@@ -4,7 +4,8 @@ from datetime import datetime
 
 import pytz
 
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 # VMTech serves BC's Lower Mainland; resource.calendar's own tz field is left at
 # the Odoo default ("UTC", never configured), so the real business timezone is
@@ -45,6 +46,12 @@ class ItSupportBookingRequest(models.Model):
         'res.users', string='Assigned Agent',
         domain=lambda self: [('group_ids', 'in', self.env.ref('it_support_management.group_it_support_agent').id)],
     )
+    ticket_id = fields.Many2one(
+        'it.support.ticket', string='Created Ticket', readonly=True, copy=False,
+        help='Set when a Manager converts this booking into a ticket from the Desktop/Mobile '
+             'Agent app (or manually from this form) - lets staff see at a glance that a booking '
+             'was already actioned and where it ended up.',
+    )
 
     def action_confirm(self):
         """Duyệt yêu cầu: tìm Customer đã có (khớp theo email) hoặc tạo mới,
@@ -69,6 +76,50 @@ class ItSupportBookingRequest(models.Model):
             if rec.state == 'pending':
                 rec.write({'state': 'rejected'})
         return True
+
+    def _format_requested_start(self):
+        self.ensure_one()
+        if not self.requested_start:
+            return ''
+        tz = self._get_business_tz()
+        local_dt = pytz.utc.localize(self.requested_start).astimezone(tz)
+        return local_dt.strftime('%A, %B %d, %Y at %I:%M %p (%Z)')
+
+    def _build_ticket_description(self):
+        self.ensure_one()
+        lines = [
+            '<p>Booking request submitted via the website.</p>',
+            '<p><strong>Requested time:</strong> %s (%.1fh)<br/>'
+            '<strong>Contact:</strong> %s - %s - %s</p>' % (
+                self._format_requested_start(), self.duration,
+                self.name, self.phone, self.email,
+            ),
+        ]
+        if self.message:
+            lines.append('<p><strong>Message:</strong><br/>%s</p>' % self.message.replace('\n', '<br/>'))
+        return ''.join(lines)
+
+    def action_confirm_and_create_ticket(self):
+        """Manager-only action (called from the Odoo backend button, or from the
+        Desktop/Mobile Agent app via the API): confirms the booking (creating/
+        linking the Customer if needed, same as action_confirm) and opens an
+        initial ticket from it in one step - meant to be used right after the
+        manager has called the customer to confirm the details."""
+        self.ensure_one()
+        if self.state == 'rejected':
+            raise UserError(_('This booking request was already rejected.'))
+        if self.ticket_id:
+            raise UserError(_('A ticket was already created from this booking request.'))
+        if self.state == 'pending':
+            self.action_confirm()
+        ticket = self.env['it.support.ticket'].sudo().create({
+            'customer_id': self.partner_id.id,
+            'subject': _('Booking Request - %s') % (self.company_name or self.name),
+            'description': self._build_ticket_description(),
+            'priority': '1',
+        })
+        self.ticket_id = ticket.id
+        return ticket
 
     @api.model
     def _get_business_tz(self):

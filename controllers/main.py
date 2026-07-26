@@ -337,6 +337,64 @@ class ItSupportApiController(http.Controller):
             'is_manager': manager_group in user.group_ids,
         })
 
+    def _require_manager(self):
+        """Returns an error dict if the current user isn't in the IT Support
+        Manager group (Desktop/Mobile Agent app calls this before showing/acting
+        on website Booking Requests - deliberately Manager-only, not Agent), else
+        None so the caller can continue."""
+        manager_group = request.env.ref('it_support_management.group_it_support_manager')
+        if manager_group not in request.env.user.group_ids:
+            return _json_error('This action requires IT Support Manager permission.', status=403)
+        return None
+
+    @http.route('/api/v1/booking/list', type='jsonrpc', auth='it_support_api_key', methods=['POST'], csrf=False)
+    def booking_list(self, **kw):
+        """Manager-only: list pending website Booking Requests, so a manager
+        using the Desktop/Mobile Agent app can review new customer requests,
+        call them to confirm details, and open an initial ticket - without
+        needing to log into the Odoo backend."""
+        err = self._require_manager()
+        if err:
+            return err
+        bookings = request.env['it.support.booking.request'].sudo().search(
+            [('state', '=', 'pending')], order='create_date desc'
+        )
+        return _json_ok([{
+            'id': b.id,
+            'name': b.name,
+            'company_type': b.company_type,
+            'company_name': b.company_name,
+            'email': b.email,
+            'phone': b.phone,
+            'requested_start': b.requested_start and fields.Datetime.to_string(b.requested_start),
+            'duration': b.duration,
+            'message': b.message,
+            'create_date': fields.Datetime.to_string(b.create_date),
+        } for b in bookings])
+
+    @http.route('/api/v1/booking/<int:booking_id>/create_ticket', type='jsonrpc', auth='it_support_api_key',
+                methods=['POST'], csrf=False)
+    def booking_create_ticket(self, booking_id, **kw):
+        """Manager-only: confirms the booking (creating/linking the Customer if
+        needed) and opens an initial ticket from it in one step."""
+        err = self._require_manager()
+        if err:
+            return err
+        booking = request.env['it.support.booking.request'].sudo().browse(booking_id)
+        if not booking.exists():
+            return _json_error('Booking request not found.', status=404)
+        if booking.state == 'rejected':
+            return _json_error('This booking request was already rejected.')
+        if booking.ticket_id:
+            return _json_error('A ticket was already created from this booking request.')
+        ticket = booking.action_confirm_and_create_ticket()
+        return _json_ok({
+            'ticket_id': ticket.id,
+            'ticket_name': ticket.name,
+            'customer_id': booking.partner_id.id,
+            'customer_name': booking.partner_id.name,
+        })
+
     @http.route('/api/v1/agent/register_fcm_token', type='jsonrpc', auth='it_support_api_key',
                 methods=['POST'], csrf=False)
     def register_fcm_token(self, **kw):

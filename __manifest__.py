@@ -27,6 +27,8 @@ IT support service management module for customers:
         'product',
         'website',
         'l10n_ca',
+        'auth_signup',
+        'auth_totp_mail',
     ],
     'data': [
         # security
@@ -38,6 +40,7 @@ IT support service management module for customers:
         'data/it_support_type_data.xml',
         'data/ir_cron_data.xml',
         'data/it_support_server_action_data.xml',
+        'data/it_support_mail_template_data.xml',
         # views
         'views/it_customer_device_views.xml',
         'views/it_support_end_user_views.xml',
