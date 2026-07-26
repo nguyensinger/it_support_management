@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Strip remaining core-Odoo branding from the backend/portal login page
+         and the customer portal document sidebar (invoices, tickets, etc. viewed
+         via portal links) - the website frontend footer's "Powered by Odoo" is
+         already removed in website_footer_templates.xml. -->
+
+    <template id="web_layout_title_debrand" inherit_id="web.layout" name="VM TECH: Page title fallback">
+        <xpath expr="//title" position="replace">
+            <title t-esc="title or 'VM TECH'"/>
+        </xpath>
+    </template>
+
+    <template id="web_login_footer_debrand" inherit_id="web.login_layout" name="VM TECH: Login page footer">
+        <xpath expr="//a[contains(@href, 'odoo.com')]" position="replace">
+            <a href="https://vmtech.ca" target="_blank">Powered by <span>VM TECH</span></a>
+        </xpath>
+    </template>
+
+    <template id="portal_sidebar_footer_debrand" inherit_id="portal.portal_record_sidebar" name="VM TECH: Portal sidebar footer">
+        <xpath expr="//a[contains(@href, 'odoo.com')]" position="replace">
+            <a href="https://vmtech.ca" target="_blank">VM TECH</a>
+        </xpath>
+    </template>
+
+</odoo>
