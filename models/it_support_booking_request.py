@@ -6,6 +6,7 @@ import pytz
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from . import it_support_fcm_service as fcm_service
 
 # VMTech serves BC's Lower Mainland; resource.calendar's own tz field is left at
 # the Odoo default ("UTC", never configured), so the real business timezone is
@@ -52,6 +53,52 @@ class ItSupportBookingRequest(models.Model):
              'Agent app (or manually from this form) - lets staff see at a glance that a booking '
              'was already actioned and where it ended up.',
     )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for rec in records:
+            rec._notify_managers_new_booking()
+        return records
+
+    def _notify_managers_new_booking(self):
+        """New website booking -> alert Managers the same way it.support.ticket
+        alerts on-duty agents for a new ticket: FCM push (Mobile Agent App, works
+        even if the app is closed/backgrounded) + a bus.bus event on the shared
+        dispatch channel (Desktop Agent App's already-open long-poll subscription -
+        no separate channel/subscription needed since it already listens there for
+        new tickets)."""
+        self.ensure_one()
+        manager_group = self.env.ref('it_support_management.group_it_support_manager')
+        managers = self.env['res.users'].search([('group_ids', 'in', manager_group.id)])
+        if not managers:
+            return
+
+        contact_label = f'{self.company_name} ({self.name})' if self.company_name else self.name
+
+        tokens = [
+            d.fcm_token for d in self.env['it.support.agent.device'].sudo().search(
+                [('agent_id', 'in', managers.ids)]
+            ) if d.fcm_token
+        ]
+        if tokens:
+            result = fcm_service.send_fcm_notification(
+                tokens,
+                title='📅 New Booking Request',
+                body=contact_label,
+                data={'event': 'new_booking', 'booking_id': str(self.id)},
+            )
+            if result.get('invalid_tokens'):
+                self.env['it.support.agent.device'].sudo().search([
+                    ('fcm_token', 'in', result['invalid_tokens']),
+                ]).unlink()
+
+        self.env['bus.bus']._sendone(
+            self.env['it.support.ticket']._get_dispatch_channel(), 'it_support_new_booking', {
+                'booking_id': self.id,
+                'contact': contact_label,
+            },
+        )
 
     def action_confirm(self):
         """Duyệt yêu cầu: tìm Customer đã có (khớp theo email) hoặc tạo mới,
