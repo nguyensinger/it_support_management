@@ -215,11 +215,16 @@ class ItSupportTicket(models.Model):
                 notify_agents = rec.agent_id
             else:
                 agent_group = self.env.ref('it_support_management.group_it_support_agent')
+                manager_group = self.env.ref('it_support_management.group_it_support_manager')
                 # sudo(): create() can run in an unprivileged (portal/public) context -
                 # an un-sudo'd search silently returns empty instead of raising, which
                 # would silently skip the FCM push for any ticket created without an
-                # agent already assigned.
-                notify_agents = self.env['res.users'].sudo().search([('group_ids', 'in', agent_group.id)])
+                # agent already assigned. Includes Manager group too - see comment in
+                # _notify_agents_new_customer_message for why group_ids alone can't be
+                # trusted to already include Agent for a Manager.
+                notify_agents = self.env['res.users'].sudo().search(
+                    [('group_ids', 'in', [agent_group.id, manager_group.id])]
+                )
             rec._send_fcm_to_agents(
                 notify_agents,
                 title=f'🎫 Ticket mới — {rec.customer_id.name}',
@@ -274,12 +279,23 @@ class ItSupportTicket(models.Model):
             # confirmed to exist on res.users in Odoo 19) rather than the reverse field on
             # res.groups (users/user_ids), to avoid relying on a field name that isn't
             # confirmed with certainty.
-            agent_group = self.env.ref('it_support_management.group_it_support_agent')
+            #
             # sudo() required: reachable from a customer-authenticated (portal) context,
             # which has no read access to res.users - an un-sudo'd search silently returns
             # empty (no AccessError) rather than raising, so this would otherwise fail
             # completely silently whenever the ticket isn't assigned to an agent yet.
-            agents = self.env['res.users'].sudo().search([('group_ids', 'in', agent_group.id)])
+            #
+            # Include Manager group too, not just Agent - group_it_support_manager declares
+            # group_it_support_agent as an implied_ids group, but that cascade isn't always
+            # reliably materialized into group_ids depending on how the group was assigned
+            # (e.g. the Users form's single-select radio for groups sharing a privilege_id
+            # can leave a Manager without a literal Agent row) - querying both groups
+            # directly makes this robust regardless of whether that cascade happened.
+            agent_group = self.env.ref('it_support_management.group_it_support_agent')
+            manager_group = self.env.ref('it_support_management.group_it_support_manager')
+            agents = self.env['res.users'].sudo().search(
+                [('group_ids', 'in', [agent_group.id, manager_group.id])]
+            )
             recipients = agents.mapped('partner_id')
         if recipients:
             # Add the agents as followers if not already, so they keep receiving
@@ -302,7 +318,10 @@ class ItSupportTicket(models.Model):
             notify_agents = self.agent_id
         else:
             agent_group = self.env.ref('it_support_management.group_it_support_agent')
-            notify_agents = self.env['res.users'].sudo().search([('group_ids', 'in', agent_group.id)])
+            manager_group = self.env.ref('it_support_management.group_it_support_manager')
+            notify_agents = self.env['res.users'].sudo().search(
+                [('group_ids', 'in', [agent_group.id, manager_group.id])]
+            )
         plain_body = body.replace('<p>', '').replace('</p>', '').strip() if body else ''
         short_body = plain_body[:100] + '…' if len(plain_body) > 100 else plain_body
         self._send_fcm_to_agents(
