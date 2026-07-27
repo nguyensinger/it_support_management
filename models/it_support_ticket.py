@@ -201,6 +201,10 @@ class ItSupportTicket(models.Model):
     def create(self, vals_list):
         records = super().create(vals_list)
         for rec in records:
+            # _auto_assign_on_duty_agent() calls write({'agent_id': ...}) when it finds
+            # someone on duty - that write() call is what sends the "you've been
+            # assigned" FCM push below (see write()), so this method only needs to
+            # handle the "still unassigned after create" case itself.
             rec._auto_assign_on_duty_agent()
             # Notify on-duty agents of the new ticket (especially if still unassigned)
             self.env['bus.bus']._sendone(rec._get_dispatch_channel(), 'it_support_new_ticket', {
@@ -210,10 +214,7 @@ class ItSupportTicket(models.Model):
                 'customer': rec.customer_id.name,
                 'priority': rec.priority,
             })
-            # FCM push notification — gửi đến agent được assign (hoặc tất cả agent on-duty nếu chưa assign)
-            if rec.agent_id:
-                notify_agents = rec.agent_id
-            else:
+            if not rec.agent_id:
                 agent_group = self.env.ref('it_support_management.group_it_support_agent')
                 manager_group = self.env.ref('it_support_management.group_it_support_manager')
                 # sudo(): create() can run in an unprivileged (portal/public) context -
@@ -225,15 +226,18 @@ class ItSupportTicket(models.Model):
                 notify_agents = self.env['res.users'].sudo().search(
                     [('group_ids', 'in', [agent_group.id, manager_group.id])]
                 )
-            rec._send_fcm_to_agents(
-                notify_agents,
-                title=f'🎫 Ticket mới — {rec.customer_id.name}',
-                body=rec.subject,
-                data={'ticket_id': str(rec.id), 'event': 'new_ticket'},
-            )
+                rec._send_fcm_to_agents(
+                    notify_agents,
+                    title=f'🎫 Ticket mới — {rec.customer_id.name}',
+                    body=rec.subject,
+                    data={'ticket_id': str(rec.id), 'event': 'new_ticket'},
+                )
         return records
 
     def write(self, vals):
+        # Capture the agent BEFORE the write, per record - needed below to tell
+        # "newly assigned to someone" apart from "no change"/"unassigned".
+        old_agent_ids = {rec.id: rec.agent_id.id for rec in self} if 'agent_id' in vals else {}
         result = super().write(vals)
         if 'state' in vals or 'agent_id' in vals:
             for rec in self:
@@ -241,6 +245,28 @@ class ItSupportTicket(models.Model):
                     'state': rec.state,
                     'agent_id': rec.agent_id.id,
                     'agent_name': rec.agent_id.name if rec.agent_id else None,
+                })
+        if 'agent_id' in vals:
+            for rec in self:
+                new_agent = rec.agent_id
+                if not new_agent or old_agent_ids.get(rec.id) == new_agent.id:
+                    continue  # cleared, or unchanged - nothing to notify
+                if new_agent.id == self.env.user.id:
+                    continue  # self-assigned via "Assign to Me" - they already know
+                rec._send_fcm_to_agents(
+                    new_agent,
+                    title=f'🎫 Ticket được gán cho bạn — {rec.customer_id.name}',
+                    body=rec.subject,
+                    data={'ticket_id': str(rec.id), 'event': 'ticket_assigned'},
+                )
+                # Desktop Agent App counterpart to the FCM push above - same dispatch
+                # channel/pattern as it_support_new_booking, filtered client-side by
+                # agent_id so only the newly-assigned agent's desktop shows a popup.
+                self.env['bus.bus']._sendone(rec._get_dispatch_channel(), 'it_support_ticket_assigned', {
+                    'ticket_id': rec.id,
+                    'ticket_name': rec.name,
+                    'subject': rec.subject,
+                    'agent_id': new_agent.id,
                 })
         return result
 
