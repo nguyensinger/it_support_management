@@ -159,10 +159,15 @@ def send_fcm_notification(fcm_tokens, title, body, data=None):
             else:
                 failed += 1
                 resp_data = resp.json() if resp.content else {}
-                error_code = resp_data.get('error', {}).get('details', [{}])
-                # Token không còn hợp lệ (app uninstall, token expire...)
-                error_status = resp_data.get('error', {}).get('status', '')
-                if error_status in ('UNREGISTERED', 'INVALID_ARGUMENT'):
+                error = resp_data.get('error', {})
+                # Token không còn hợp lệ (app uninstall, token expire...). FCM v1 API
+                # đặt mã lỗi thực sự (UNREGISTERED/INVALID_ARGUMENT) trong
+                # error.details[].errorCode - KHÔNG phải error.status (đó là mã lỗi
+                # HTTP chung chung, ví dụ 'NOT_FOUND' cho cả token die lẫn lỗi khác).
+                detail_codes = {
+                    d.get('errorCode') for d in error.get('details', []) if d.get('errorCode')
+                }
+                if detail_codes & {'UNREGISTERED', 'INVALID_ARGUMENT'}:
                     invalid_tokens.append(token)
                 _logger.warning(
                     'FCM send failed for token %s...: %s %s',

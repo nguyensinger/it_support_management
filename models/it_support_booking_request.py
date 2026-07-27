@@ -70,7 +70,12 @@ class ItSupportBookingRequest(models.Model):
         new tickets)."""
         self.ensure_one()
         manager_group = self.env.ref('it_support_management.group_it_support_manager')
-        managers = self.env['res.users'].search([('group_ids', 'in', manager_group.id)])
+        # sudo() required: this runs from the public website form (auth='public'),
+        # and the public user has no read access to res.users - an un-sudo'd search
+        # silently returns an empty recordset (no AccessError) rather than raising,
+        # so this would otherwise fail completely silently with no notification and
+        # no error in the logs.
+        managers = self.env['res.users'].sudo().search([('group_ids', 'in', manager_group.id)])
         if not managers:
             return
 
