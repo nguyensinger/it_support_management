@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from markupsafe import Markup
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from . import it_support_fcm_service as fcm_service
@@ -288,6 +290,37 @@ class ItSupportTicket(models.Model):
                     self.agent_id and message.author_id == self.agent_id.partner_id):
                 self.sudo().write({'first_response_date': fields.Datetime.now()})
         return message
+
+    def _post_desktop_client_greeting(self):
+        """Auto-post an introductory chat message when a ticket is created from the
+        Desktop Client App (End User self-service), so the agent immediately has the
+        requester's contact info and remote-access ID without having to ask. Silently
+        does nothing if the ticket isn't linked to a specific End User (e.g. created
+        without device_id/end_user_id) - there's no one to introduce in that case.
+        Deliberately NOT routed through _notify_agents_new_customer_message: ticket
+        creation already sends its own "new ticket" FCM/dispatch notification, so a
+        second "new customer message" notification for the same event would be
+        redundant noise.
+        """
+        self.ensure_one()
+        if not self.end_user_id:
+            return
+        eu = self.end_user_id
+        lines = [
+            'Hello, I am %s from %s of %s' % (eu.name, eu.department or '-', self.customer_id.name),
+            'Email: %s' % (eu.email or '-'),
+            'Phone: %s' % (eu.phone or '-'),
+            'Ultraview ID: %s' % ((self.device_id.ultraview_id or '-') if self.device_id else '-'),
+        ]
+        # message_post's body treats a plain str as untrusted plain text and HTML-escapes
+        # it (so a literal '<br/>' shows up as the text "<br/>" instead of a line break) -
+        # Markup() marks it as already-safe HTML so the tags are actually rendered.
+        self.message_post(
+            body=Markup('<br/>').join(lines),
+            message_type='comment',
+            subtype_xmlid='mail.mt_comment',
+            author_id=self.customer_id.id or None,
+        )
 
     def _notify_agents_new_customer_message(self, body):
         """Called when the customer (via the desktop agent) sends a new chat message.

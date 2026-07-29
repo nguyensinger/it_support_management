@@ -62,7 +62,9 @@ class ItSupportApiController(http.Controller):
           "ip_address": "192.168.1.50",
           "ultraview_id": "987654321",
           "end_user_name": "John Smith",     # optional, creates an end_user if missing
-          "end_user_email": "j.smith@customer.com"
+          "end_user_email": "j.smith@customer.com",
+          "end_user_phone": "778 288 3053",  # optional
+          "end_user_department": "Accounting"  # optional
         }
         """
         Device = request.env['it.customer.device'].sudo()
@@ -81,12 +83,24 @@ class ItSupportApiController(http.Controller):
                 ('customer_id', '=', customer.id),
                 ('email', '=', kw.get('end_user_email')),
             ], limit=1)
+            # phone/department were previously accepted from the client but silently
+            # dropped here - kept as separate fields (not folded into `vals` above)
+            # since only non-empty ones should overwrite what's already on file.
+            end_user_updates = {
+                k: v for k, v in {
+                    'name': kw.get('end_user_name'),
+                    'phone': kw.get('end_user_phone'),
+                    'department': kw.get('end_user_department'),
+                }.items() if v
+            }
             if not end_user and kw.get('end_user_name'):
                 end_user = EndUser.create({
-                    'name': kw.get('end_user_name'),
+                    **end_user_updates,
                     'email': kw.get('end_user_email'),
                     'customer_id': customer.id,
                 })
+            elif end_user and end_user_updates:
+                end_user.write(end_user_updates)
 
         device = Device.search([
             ('customer_id', '=', customer.id),
@@ -176,6 +190,7 @@ class ItSupportApiController(http.Controller):
             return _json_error('Missing device_id or customer_id.')
 
         ticket = Ticket.create(vals)
+        ticket._post_desktop_client_greeting()
         return _json_ok({
             'ticket_id': ticket.id,
             'ticket_name': ticket.name,
