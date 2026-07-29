@@ -48,6 +48,10 @@
                             <field name="company_name" invisible="company_type != 'company'"/>
                             <field name="email"/>
                             <field name="phone"/>
+                            <field name="street"/>
+                            <field name="city"/>
+                            <field name="state_id"/>
+                            <field name="zip"/>
                         </group>
                         <group string="Booking">
                             <field name="requested_start"/>

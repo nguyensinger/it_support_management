@@ -23,7 +23,7 @@ class ItSupportWebsiteBooking(http.Controller):
     the same everywhere.
     """
 
-    REQUIRED_FIELDS = ['name', 'email', 'phone', 'date', 'start_hour']
+    REQUIRED_FIELDS = ['name', 'email', 'phone', 'street', 'city', 'state_id', 'zip', 'date', 'start_hour']
     RECAPTCHA_ACTION = 'booking'
 
     @http.route('/booking', type='http', auth='public', website=True, sitemap=True)
@@ -47,6 +47,11 @@ class ItSupportWebsiteBooking(http.Controller):
             'today_str': today_str,
             'selected_date': selected_date,
             'slots': slots,
+            # VMTech only serves BC's Lower Mainland (see BUSINESS_TZ in the model) -
+            # Province is a dropdown of Canadian provinces only, no Country field at all.
+            'provinces': request.env['res.country.state'].sudo().search(
+                [('country_id', '=', request.env.ref('base.ca').id)], order='name'
+            ),
         })
 
     @staticmethod
@@ -62,6 +67,10 @@ class ItSupportWebsiteBooking(http.Controller):
             'phone': partner.phone or '',
             'company_name': commercial.name if commercial and commercial != partner else '',
             'company_type': 'company' if partner.is_company else 'person',
+            'street': partner.street or '',
+            'city': partner.city or '',
+            'state_id': str(partner.state_id.id) if partner.state_id else '',
+            'zip': partner.zip or '',
         }
 
     @http.route('/booking/submit', type='http', auth='public', website=True, methods=['POST'], csrf=True)
@@ -80,6 +89,10 @@ class ItSupportWebsiteBooking(http.Controller):
                 'company_name': post.get('company_name', ''),
                 'email': post.get('email', ''),
                 'phone': post.get('phone', ''),
+                'street': post.get('street', ''),
+                'city': post.get('city', ''),
+                'state_id': post.get('state_id', ''),
+                'zip': post.get('zip', ''),
                 'message': post.get('message', ''),
                 'start_hour': start_hour,
                 'company_type': company_type,
@@ -93,6 +106,21 @@ class ItSupportWebsiteBooking(http.Controller):
             return redirect_with_error(['captcha'])
 
         missing = [f for f in self.REQUIRED_FIELDS if not (post.get(f) or '').strip()]
+
+        state_id = False
+        if 'state_id' not in missing:
+            # Confirm it's actually one of the offered Canadian provinces (defends
+            # against a tampered/non-numeric value, not just a missing one).
+            try:
+                state_id = request.env['res.country.state'].sudo().search([
+                    ('id', '=', int(post.get('state_id'))),
+                    ('country_id', '=', request.env.ref('base.ca').id),
+                ], limit=1)
+            except ValueError:
+                state_id = False
+            if not state_id:
+                missing.append('state_id')
+
         valid_hours = {s['value'] for s in Booking.get_available_slots(selected_date)}
         if not missing and start_hour not in valid_hours:
             # Stale page (slots changed) or tampered value - re-show the form
@@ -109,6 +137,10 @@ class ItSupportWebsiteBooking(http.Controller):
             'company_name': (post.get('company_name') or '').strip(),
             'email': post.get('email', '').strip(),
             'phone': post.get('phone', '').strip(),
+            'street': post.get('street', '').strip(),
+            'city': post.get('city', '').strip(),
+            'state_id': state_id.id,
+            'zip': post.get('zip', '').strip(),
             'requested_start': requested_start,
             'duration': 1.0,
             'message': (post.get('message') or '').strip(),

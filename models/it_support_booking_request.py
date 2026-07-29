@@ -28,6 +28,17 @@ class ItSupportBookingRequest(models.Model):
     company_name = fields.Char(string='Company')
     email = fields.Char(string='Email', required=True)
     phone = fields.Char(string='Phone', required=True)
+    # VMTech does onsite visits, so an address is required at booking time -
+    # not just for record-keeping, the agent needs to actually know where to go.
+    # Country is deliberately not a field here (always Canada) - VMTech only
+    # serves BC's Lower Mainland, same reasoning as BUSINESS_TZ above.
+    street = fields.Char(string='Street', required=True)
+    city = fields.Char(string='City', required=True)
+    state_id = fields.Many2one(
+        'res.country.state', string='Province', required=True,
+        domain=lambda self: [('country_id', '=', self.env.ref('base.ca').id)],
+    )
+    zip = fields.Char(string='Zip Code', required=True)
     requested_start = fields.Datetime(string='Requested Start', required=True)
     # Always 1.0 from the website slot picker; kept as its own field (not
     # hardcoded) since actual on-site work commonly runs longer than the
@@ -119,6 +130,11 @@ class ItSupportBookingRequest(models.Model):
                     'is_company': is_company,
                     'email': rec.email,
                     'phone': rec.phone,
+                    'street': rec.street,
+                    'city': rec.city,
+                    'state_id': rec.state_id.id,
+                    'zip': rec.zip,
+                    'country_id': rec.state_id.country_id.id,
                 })
             rec.write({'state': 'confirmed', 'partner_id': partner.id})
         return True
@@ -142,9 +158,11 @@ class ItSupportBookingRequest(models.Model):
         lines = [
             '<p>Booking request submitted via the website.</p>',
             '<p><strong>Requested time:</strong> %s (%.1fh)<br/>'
-            '<strong>Contact:</strong> %s - %s - %s</p>' % (
+            '<strong>Contact:</strong> %s - %s - %s<br/>'
+            '<strong>Address:</strong> %s, %s, %s %s</p>' % (
                 self._format_requested_start(), self.duration,
                 self.name, self.phone, self.email,
+                self.street, self.city, self.state_id.name or '', self.zip,
             ),
         ]
         if self.message:

@@ -119,6 +119,36 @@
                                     </div>
 
                                     <div class="mb-3">
+                                        <label class="form-label" for="booking_street">Street Address</label>
+                                        <input type="text" class="form-control" id="booking_street" name="street"
+                                               required="required" t-att-value="formatted.get('street')"/>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-5 mb-3">
+                                            <label class="form-label" for="booking_city">City</label>
+                                            <input type="text" class="form-control" id="booking_city" name="city"
+                                                   required="required" t-att-value="formatted.get('city')"/>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label" for="booking_state">Province</label>
+                                            <select class="form-select" id="booking_state" name="state_id" required="required">
+                                                <option value="">Select...</option>
+                                                <t t-foreach="provinces" t-as="province">
+                                                    <option t-att-value="province.id"
+                                                            t-att-selected="str(province.id) == formatted.get('state_id') or None"
+                                                            t-esc="province.name"/>
+                                                </t>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label" for="booking_zip">Zip Code</label>
+                                            <input type="text" class="form-control" id="booking_zip" name="zip"
+                                                   required="required" t-att-value="formatted.get('zip')"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
                                         <label class="form-label" for="booking_message">What do you need help with?</label>
                                         <textarea class="form-control" id="booking_message" name="message" rows="4" t-esc="formatted.get('message') or ''"></textarea>
                                     </div>
