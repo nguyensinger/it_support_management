@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 from datetime import date as date_cls
 from datetime import datetime
 
@@ -116,13 +117,36 @@ class ItSupportBookingRequest(models.Model):
             },
         )
 
+    @api.model
+    def _normalize_phone(self, phone):
+        """Last 10 digits only - matches regardless of dashes/spaces/parens or a
+        leading '1' country code, so '604-555-1234', '(604) 555-1234' and
+        '+1 604-555-1234' are all recognized as the same number."""
+        digits = re.sub(r'\D', '', phone or '')
+        return digits[-10:] if len(digits) >= 10 else digits
+
+    def _find_existing_partner(self):
+        """Email match first (exact, reliable); phone as a fallback for a returning
+        customer who used a different email this time - without this, they'd get a
+        duplicate Customer record instead of being recognized as existing."""
+        self.ensure_one()
+        partner = self.env['res.partner'].sudo().search([('email', '=', self.email)], limit=1)
+        if partner:
+            return partner
+        normalized = self._normalize_phone(self.phone)
+        if not normalized:
+            return self.env['res.partner']
+        candidates = self.env['res.partner'].sudo().search([('phone', '!=', False)])
+        return candidates.filtered(lambda p: self._normalize_phone(p.phone) == normalized)[:1]
+
     def action_confirm(self):
-        """Duyệt yêu cầu: tìm Customer đã có (khớp theo email) hoặc tạo mới,
-        gắn vào request, chuyển trạng thái sang Confirmed."""
+        """Duyệt yêu cầu: tìm Customer đã có (khớp theo email, hoặc theo SĐT nếu
+        không trùng email) hoặc tạo mới, gắn vào request, chuyển trạng thái sang
+        Confirmed."""
         for rec in self:
             if rec.state != 'pending':
                 continue
-            partner = self.env['res.partner'].sudo().search([('email', '=', rec.email)], limit=1)
+            partner = rec._find_existing_partner()
             if not partner:
                 is_company = rec.company_type == 'company'
                 partner = self.env['res.partner'].sudo().create({
