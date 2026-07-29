@@ -5,6 +5,7 @@
         <record id="support_type_online" model="it.support.type">
             <field name="name">Online Support</field>
             <field name="mode">online</field>
+            <field name="customer_type">all</field>
             <field name="sequence">10</field>
             <field name="price_per_hour">80</field>
             <field name="first_block_minutes">15</field>
@@ -16,6 +17,7 @@
         <record id="support_type_onsite" model="it.support.type">
             <field name="name">Onsite Support</field>
             <field name="mode">onsite</field>
+            <field name="customer_type">all</field>
             <field name="sequence">20</field>
             <field name="price_per_hour">145</field>
             <field name="first_block_minutes">60</field>

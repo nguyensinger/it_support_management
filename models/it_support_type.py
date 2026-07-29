@@ -13,6 +13,15 @@ class ItSupportType(models.Model):
         ('onsite', 'Onsite'),
         ('online', 'Online'),
     ], string='Mode', required=True, default='online')
+    customer_type = fields.Selection([
+        ('all', 'All'),
+        ('person', 'Person'),
+        ('company', 'Company'),
+    ], string='Customer Type', required=True, default='all',
+        help='Restrict this price to customers of this type (Person/Company), or "All" to '
+             'apply regardless of customer type. When looking up a price for a session, a row '
+             'matching the customer\'s actual type takes priority over an "All" row for the '
+             'same Mode - only fall back to "All" if no type-specific row exists.')
     sequence = fields.Integer(default=10)
 
     currency_id = fields.Many2one(
@@ -98,3 +107,17 @@ class ItSupportType(models.Model):
         self.ensure_one()
         billable_hours = self.compute_billable_hours(duration_hours)
         return billable_hours * self.price_per_hour
+
+    @api.model
+    def find_for(self, mode, customer_company_type):
+        """Look up the pricing row for a given Mode + customer type ('person'/'company',
+        e.g. res.partner.company_type). A row matching the customer's actual type takes
+        priority; falls back to a 'All' row for the same Mode if no type-specific row
+        exists - this keeps a single shared price working for both customer types until
+        someone actually adds a type-specific override row.
+        """
+        if customer_company_type in ('person', 'company'):
+            specific = self.search([('mode', '=', mode), ('customer_type', '=', customer_company_type)], limit=1)
+            if specific:
+                return specific
+        return self.search([('mode', '=', mode), ('customer_type', '=', 'all')], limit=1)

@@ -9,6 +9,7 @@
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="mode"/>
+                <field name="customer_type"/>
                 <field name="price_per_hour"/>
                 <field name="first_block_minutes"/>
                 <field name="block_minutes"/>
@@ -29,6 +30,7 @@
                     <group>
                         <group>
                             <field name="mode"/>
+                            <field name="customer_type"/>
                             <field name="price_per_hour"/>
                             <field name="currency_id" groups="base.group_multi_currency"/>
                         </group>
