@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Direct one-click access to the company's Working Schedule
+         (res.company.resource_calendar_id) from within IT Support Management -
+         this is what it.support.booking.request.get_available_slots() reads to
+         build the website Booking slot picker, but it otherwise only lives under
+         Settings > Technical > Resource > Working Schedules, easy to lose track of. -->
+    <record id="action_it_support_business_hours" model="ir.actions.server">
+        <field name="name">Business Hours (Booking)</field>
+        <field name="model_id" ref="base.model_res_company"/>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Business Hours (Booking)',
+    'res_model': 'resource.calendar',
+    'view_mode': 'form',
+    'res_id': env.company.resource_calendar_id.id,
+    'target': 'current',
+}
+        </field>
+    </record>
+
+    <menuitem id="menu_it_support_business_hours" name="Business Hours (Booking)" parent="menu_it_support_master_data"
+              action="action_it_support_business_hours" sequence="35"
+              groups="it_support_management.group_it_support_manager"/>
+</odoo>
