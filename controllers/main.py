@@ -2,6 +2,7 @@
 import logging
 
 from odoo import http, fields
+from odoo.exceptions import AccessDenied
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
@@ -335,6 +336,60 @@ class ItSupportApiController(http.Controller):
             return _json_error(str(e), status=500)
         return _json_ok(notifications)
 
+
+    @http.route('/api/v1/agent/login', type='jsonrpc', auth='public', methods=['POST'], csrf=False)
+    def agent_login(self, **kw):
+        """Email + password login for the Desktop/Mobile Agent apps, so staff can sign
+        in with the same credentials they already use for the Odoo web UI instead of
+        having to be handed a manually-generated API key. Verifies via the same
+        res.users.authenticate() Odoo's own /web/login uses (inheriting its brute-force
+        lockout behavior), then - on success, for an Agent/Manager account only -
+        mints a brand-new persistent API key and hands it back. Everything AFTER login
+        keeps working exactly as before: the app stores this key and uses the existing
+        Bearer-API-key endpoints for everything else, same as one pasted in manually.
+
+        Payload: { "login": "agent@vmtech.ca", "password": "..." }
+
+        Note: a new API key is generated on every login (Odoo API keys are stored as a
+        one-way hash - there is no way to retrieve a previously-issued key's value
+        again to reuse it). Old keys from earlier logins are not auto-revoked; an admin
+        can clean them up under the user's Account Security settings if needed.
+        """
+        login = (kw.get('login') or '').strip()
+        password = kw.get('password') or ''
+        if not login or not password:
+            return _json_error('Missing login or password.')
+
+        try:
+            auth_info = request.env['res.users'].authenticate(
+                {'type': 'password', 'login': login, 'password': password},
+                {'interactive': False},
+            )
+        except AccessDenied:
+            return _json_error('Invalid email or password.', status=401)
+
+        user = request.env['res.users'].sudo().browse(auth_info['uid'])
+        agent_group = request.env.ref('it_support_management.group_it_support_agent')
+        manager_group = request.env.ref('it_support_management.group_it_support_manager')
+        is_agent = agent_group in user.group_ids
+        is_manager = manager_group in user.group_ids
+        if not is_agent and not is_manager:
+            return _json_error(
+                'This account is not in the IT Support Agent/Manager group. Please contact your administrator.',
+                status=403,
+            )
+
+        key_name = 'Agent app login - %s' % fields.Datetime.now()
+        api_key = request.env['res.users.apikeys'].sudo().with_user(user)._generate(None, key_name, None)
+
+        return _json_ok({
+            'api_key': api_key,
+            'user_id': user.id,
+            'name': user.name,
+            'email': user.email,
+            'is_agent': is_agent,
+            'is_manager': is_manager,
+        })
 
     @http.route('/api/v1/whoami', type='jsonrpc', auth='it_support_api_key', methods=['POST'], csrf=False)
     def whoami(self, **kw):
