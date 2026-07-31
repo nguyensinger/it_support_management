@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="portal_my_home_menu_ticket" name="Portal layout: ticket menu entries"
+              inherit_id="portal.portal_breadcrumbs" priority="30">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li name="tickets_breadcrumb" t-if="page_name == 'ticket'"
+                t-attf-class="breadcrumb-item #{'active ' if not ticket else ''}">
+                <a t-if="ticket" t-attf-href="/my/tickets?{{ keep_query() }}">Support Tickets</a>
+                <t t-else="">Support Tickets</t>
+            </li>
+            <li t-if="ticket" class="breadcrumb-item active">
+                <t t-out="ticket.name"/>
+            </li>
+        </xpath>
+    </template>
+
+    <template id="portal_my_home_ticket" name="Support Tickets" inherit_id="portal.portal_my_home"
+              customize_show="True" priority="30">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/base_setup/static/description/icon.png'"/>
+                <t t-set="title">Support Tickets</t>
+                <t t-set="url" t-value="'/my/tickets'"/>
+                <t t-set="text">Follow the status of your support tickets</t>
+                <t t-set="placeholder_count" t-value="'ticket_count'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="portal_my_tickets" name="My Tickets">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Support Tickets</t>
+            </t>
+
+            <t t-if="not tickets">
+                <div class="alert alert-warning" role="alert">
+                    There are no support tickets for your account.
+                </div>
+            </t>
+            <t t-else="">
+                <t t-call="portal.portal_table">
+                    <thead>
+                        <tr class="active">
+                            <th>Ticket No.</th>
+                            <th>Subject</th>
+                            <th>Device</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th class="text-end">Created On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="tickets" t-as="ticket">
+                            <tr>
+                                <td>
+                                    <a t-attf-href="/my/tickets/#{ticket.id}?{{ keep_query() }}">
+                                        <span t-field="ticket.name"/>
+                                    </a>
+                                </td>
+                                <td><span t-field="ticket.subject"/></td>
+                                <td><span t-out="ticket.sudo().device_id.name"/></td>
+                                <td><span t-field="ticket.state"/></td>
+                                <td><span t-field="ticket.priority"/></td>
+                                <td class="text-end"><span t-field="ticket.create_date"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="portal_my_ticket" name="My Ticket" inherit_id="portal.portal_sidebar" primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <t t-set="title" t-value="ticket.name"/>
+
+            <div class="row o_it_support_portal_sidebar">
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-4 col-xxl-3 d-print-none'"/>
+                    <t t-set="entries">
+                        <div class="d-flex flex-wrap flex-column gap-4">
+                            <div class="d-flex flex-column gap-2">
+                                <div>
+                                    <h6><small class="text-muted">Status</small></h6>
+                                    <span t-field="ticket.state"/>
+                                </div>
+                                <div>
+                                    <h6><small class="text-muted">Priority</small></h6>
+                                    <span t-field="ticket.priority"/>
+                                </div>
+                                <div t-if="ticket.device_id">
+                                    <h6><small class="text-muted">Device</small></h6>
+                                    <span t-out="ticket.sudo().device_id.name"/>
+                                </div>
+                                <div t-if="ticket.end_user_id">
+                                    <h6><small class="text-muted">Requested By</small></h6>
+                                    <span t-out="ticket.sudo().end_user_id.name"/>
+                                </div>
+                                <div t-if="ticket.agent_id">
+                                    <h6><small class="text-muted">IT Support Agent</small></h6>
+                                    <span t-out="ticket.sudo().agent_id.name"/>
+                                </div>
+                                <div>
+                                    <h6><small class="text-muted">Created On</small></h6>
+                                    <span t-field="ticket.create_date"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+
+                <div id="ticket_content" class="o_portal_content col-12 col-lg-8 col-xxl-9">
+                    <div id="card">
+                        <div id="card_header">
+                            <div class="row justify-content-between mb-3">
+                                <div class="col-12 col-md-9">
+                                    <h3 class="my-0">
+                                        <span t-field="ticket.subject"/>
+                                        <small class="text-muted d-none d-md-inline">(<span t-field="ticket.name"/>)</small>
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="card_body">
+                            <div class="row mb-4" t-if="not is_html_empty(ticket.description)">
+                                <div class="col-12">
+                                    <h5 class="mb-1">Description</h5>
+                                    <hr class="mt-1 mb-2"/>
+                                    <div class="py-1 px-2 bg-100 small overflow-auto table-responsive mb-4"
+                                         t-field="ticket.description"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr/>
+                    <div id="ticket_chat">
+                        <h3>Communication History</h3>
+                        <t t-if="not messages">
+                            <p class="text-muted">No messages yet.</p>
+                        </t>
+                        <t t-else="">
+                            <div class="d-flex flex-column gap-3 mt-3">
+                                <t t-foreach="messages" t-as="message">
+                                    <div class="p-2 px-3 rounded bg-100">
+                                        <div class="d-flex justify-content-between">
+                                            <strong t-out="message.author_id.name or message.email_from or 'VM TECH'"/>
+                                            <small class="text-muted" t-out="message.date"/>
+                                        </div>
+                                        <div t-field="message.body" class="mt-1"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

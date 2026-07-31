@@ -9,7 +9,7 @@ from . import it_support_fcm_service as fcm_service
 class ItSupportTicket(models.Model):
     _name = 'it.support.ticket'
     _description = 'IT Support Ticket'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'portal.mixin']
     _order = 'create_date desc'
     _rec_name = 'name'
 
@@ -122,6 +122,11 @@ class ItSupportTicket(models.Model):
     ], string='Resolution SLA', compute='_compute_sla_status', store=True, default='pending')
 
     active = fields.Boolean(default=True)
+
+    def _compute_access_url(self):
+        super()._compute_access_url()
+        for rec in self:
+            rec.access_url = '/my/tickets/%s' % rec.id
 
     # ---------- Realtime (bus.bus) ----------
     def _get_ticket_channel(self):

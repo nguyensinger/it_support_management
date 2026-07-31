@@ -43,5 +43,16 @@
             <field name="groups" eval="[(4, ref('group_it_support_manager'))]"/>
         </record>
 
+        <!-- Portal: customer_id is always a company (is_company=True, see the field's
+             domain) - 'child_of' also covers the case where the portal user account was
+             granted on a child contact of that company rather than the company record
+             itself (same pattern as account_invoice_rule_portal in the account module). -->
+        <record id="rule_ticket_portal_own_company" model="ir.rule">
+            <field name="name">IT Ticket: Portal sees own company's tickets</field>
+            <field name="model_id" ref="model_it_support_ticket"/>
+            <field name="domain_force">[('customer_id', 'child_of', [user.commercial_partner_id.id])]</field>
+            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        </record>
+
     </data>
 </odoo>

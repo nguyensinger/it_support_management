@@ -26,6 +26,7 @@ IT support service management module for customers:
         'account',
         'product',
         'website',
+        'portal',
         'l10n_ca',
         'auth_signup',
         'auth_totp_mail',
@@ -60,6 +61,7 @@ IT support service management module for customers:
         'views/website_footer_templates.xml',
         'views/website_header_booking_button.xml',
         'views/website_debrand_templates.xml',
+        'views/it_support_portal_templates.xml',
         # report
         'report/it_support_monthly_report.xml',
         'report/it_support_monthly_report_templates.xml',
