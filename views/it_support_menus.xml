@@ -22,6 +22,9 @@
     <menuitem id="menu_it_support_types" name="Support Types &amp; Pricing" parent="menu_it_support_master_data"
               action="action_it_support_type" sequence="30"
               groups="it_support_management.group_it_support_manager"/>
+    <menuitem id="menu_it_support_agent_commission" name="Agent Commission Rates" parent="menu_it_support_master_data"
+              action="action_it_support_agent_commission" sequence="40"
+              groups="it_support_management.group_it_support_manager"/>
 
     <menuitem id="menu_it_support_billing" name="Reports &amp; Invoicing" parent="menu_it_support_root"
               sequence="40" groups="it_support_management.group_it_support_manager"/>
@@ -29,6 +32,13 @@
               action="action_it_support_monthly_summary" sequence="10"/>
     <menuitem id="menu_it_support_generate_summary" name="Generate Monthly Summary" parent="menu_it_support_billing"
               action="action_it_support_generate_summary_wizard" sequence="20"/>
+
+    <!-- No groups restriction: agents can see this too (their own payroll only,
+         via rule_agent_payroll_own) - only the generate wizard below stays manager-only. -->
+    <menuitem id="menu_it_support_agent_payroll" name="Agent Payroll" parent="menu_it_support_root"
+              action="action_it_support_agent_payroll" sequence="45"/>
+    <menuitem id="menu_it_support_generate_agent_payroll" name="Generate Monthly Payroll" parent="menu_it_support_billing"
+              action="action_it_support_agent_payroll_generate_wizard" sequence="30"/>
 
 
     <menuitem id="it_support_menu_sla"

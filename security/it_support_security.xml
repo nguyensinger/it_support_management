@@ -54,5 +54,23 @@
             <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
         </record>
 
+        <!-- Payroll: an agent may only see their own payroll (their commission
+             amounts are private); managers see everyone's - same "explicit manager
+             sees all" pattern as rule_ticket_manager_all, needed because the manager
+             group is implied into the agent group too. -->
+        <record id="rule_agent_payroll_own" model="ir.rule">
+            <field name="name">IT Agent Payroll: Agent sees own only</field>
+            <field name="model_id" ref="model_it_support_agent_payroll"/>
+            <field name="domain_force">[('agent_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_it_support_agent'))]"/>
+        </record>
+
+        <record id="rule_agent_payroll_manager_all" model="ir.rule">
+            <field name="name">IT Agent Payroll: Manager sees all</field>
+            <field name="model_id" ref="model_it_support_agent_payroll"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_it_support_manager'))]"/>
+        </record>
+
     </data>
 </odoo>

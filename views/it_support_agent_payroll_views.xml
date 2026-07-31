@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_it_support_agent_payroll_list" model="ir.ui.view">
+        <field name="name">it.support.agent.payroll.list</field>
+        <field name="model">it.support.agent.payroll</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="agent_id"/>
+                <field name="month"/>
+                <field name="year"/>
+                <field name="session_count"/>
+                <field name="total_hours" sum="Billable Hours"/>
+                <field name="commission_rate"/>
+                <field name="total_revenue" sum="Session Revenue"/>
+                <field name="commission_amount" sum="Commission Amount"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'paid'"
+                       decoration-info="state == 'confirmed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_it_support_agent_payroll_form" model="ir.ui.view">
+        <field name="name">it.support.agent.payroll.form</field>
+        <field name="model">it.support.agent.payroll</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object"
+                            class="oe_highlight" invisible="state != 'draft'"
+                            groups="it_support_management.group_it_support_manager"/>
+                    <button name="action_mark_paid" string="Mark as Paid" type="object"
+                            class="oe_highlight" invisible="state != 'confirmed'"
+                            groups="it_support_management.group_it_support_manager"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object"
+                            invisible="state != 'confirmed'"
+                            groups="it_support_management.group_it_support_manager"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="display_name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="agent_id" readonly="state != 'draft'"/>
+                            <field name="month" readonly="state != 'draft'"/>
+                            <field name="year" readonly="state != 'draft'"/>
+                            <field name="commission_rate" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="session_count"/>
+                            <field name="total_hours"/>
+                            <field name="total_revenue"/>
+                            <field name="commission_amount"/>
+                            <field name="paid_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Session Details">
+                            <field name="session_ids" readonly="1">
+                                <list>
+                                    <field name="ticket_id"/>
+                                    <field name="support_mode"/>
+                                    <field name="start_time"/>
+                                    <field name="duration"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_it_support_agent_payroll_search" model="ir.ui.view">
+        <field name="name">it.support.agent.payroll.search</field>
+        <field name="model">it.support.agent.payroll</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="agent_id"/>
+                <field name="year"/>
+                <group>
+                    <filter string="Agent" name="group_agent" context="{'group_by':'agent_id'}"/>
+                    <filter string="Year" name="group_year" context="{'group_by':'year'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_it_support_agent_payroll" model="ir.actions.act_window">
+        <field name="name">Agent Payroll</field>
+        <field name="res_model">it.support.agent.payroll</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_it_support_agent_payroll_search"/>
+    </record>
+
+</odoo>

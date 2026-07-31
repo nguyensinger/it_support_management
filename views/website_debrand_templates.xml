@@ -23,4 +23,20 @@
         </xpath>
     </template>
 
+    <!-- "Powered by Odoo" footer on outgoing notification emails (ticket chatter
+         updates, etc. sent via mail.thread.message_post) - these use these QWeb
+         layout templates, not a mail.template record, so they need their own
+         inherit here rather than living in it_support_mail_template_data.xml. -->
+    <template id="mail_notification_layout_debrand" inherit_id="mail.mail_notification_layout" name="VM TECH: Notification email footer">
+        <xpath expr="//a[contains(@href, 'odoo.com')]" position="replace">
+            <a href="https://vmtech.ca" target="_blank" t-att-style="'color: ' + (company.email_secondary_color or '#875A7B') + ';'">VM TECH</a>
+        </xpath>
+    </template>
+
+    <template id="mail_notification_light_debrand" inherit_id="mail.mail_notification_light" name="VM TECH: Light notification email footer">
+        <xpath expr="//a[contains(@href, 'odoo.com')]" position="replace">
+            <a href="https://vmtech.ca" target="_blank" t-att-style="'color: ' + (company.email_secondary_color or '#875A7B') + ';'">VM TECH</a>
+        </xpath>
+    </template>
+
 </odoo>

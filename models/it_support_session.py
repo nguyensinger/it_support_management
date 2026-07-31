@@ -15,6 +15,11 @@ class ItSupportSession(models.Model):
         related='ticket_id.customer_id', string='Customer', store=True, readonly=True,
     )
     agent_id = fields.Many2one('res.users', string='IT Support Agent', required=True, default=lambda self: self.env.user)
+    payroll_id = fields.Many2one(
+        'it.support.agent.payroll', string='Payroll', readonly=True, copy=False,
+        help='Set once this session has been included in a generated monthly payroll '
+             'record for the agent - prevents the same session from being paid out twice.',
+    )
 
     start_time = fields.Datetime(string='Start', required=True, default=fields.Datetime.now)
     end_time = fields.Datetime(string='End')

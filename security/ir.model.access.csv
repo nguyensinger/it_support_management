@@ -27,3 +27,7 @@ access_it_support_booking_request_portal,it.support.booking.request.portal,model
 access_it_support_booking_request_agent,it.support.booking.request.agent,model_it_support_booking_request,group_it_support_agent,1,1,1,0
 access_it_support_booking_request_manager,it.support.booking.request.manager,model_it_support_booking_request,group_it_support_manager,1,1,1,1
 access_it_support_ticket_portal,it.support.ticket.portal,model_it_support_ticket,base.group_portal,1,0,0,0
+access_it_support_agent_commission_wizard_manager,it.support.agent.commission.wizard.manager,model_it_support_agent_commission_wizard,group_it_support_manager,1,1,1,1
+access_it_support_agent_payroll_agent,it.support.agent.payroll.agent,model_it_support_agent_payroll,group_it_support_agent,1,0,0,0
+access_it_support_agent_payroll_manager,it.support.agent.payroll.manager,model_it_support_agent_payroll,group_it_support_manager,1,1,1,1
+access_it_support_agent_payroll_generate_wizard_manager,it.support.agent.payroll.generate.wizard.manager,model_it_support_agent_payroll_generate_wizard,group_it_support_manager,1,1,1,1
