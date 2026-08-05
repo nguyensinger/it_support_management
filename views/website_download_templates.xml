@@ -19,21 +19,42 @@
                             tickets and chat directly with our IT team.
                         </p>
 
-                        <t t-if="client_installer">
-                            <div class="card p-4 text-center shadow-sm">
-                                <h4 class="mb-1">VM TECH Support Client</h4>
-                                <p class="text-muted mb-3">Windows - Version 1.0.0</p>
-                                <a href="/download/client-windows" class="btn btn-primary btn-lg">
-                                    <i class="fa fa-download me-2"/>Download for Windows
-                                </a>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <t t-if="client_installer">
+                                    <div class="card p-4 text-center shadow-sm h-100">
+                                        <h4 class="mb-1">VM TECH Support Client</h4>
+                                        <p class="text-muted mb-3">Windows - Version 1.0.0</p>
+                                        <a href="/download/client-windows" class="btn btn-primary btn-lg mt-auto">
+                                            <i class="fa fa-download me-2"/>Download for Windows
+                                        </a>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="alert alert-warning text-center h-100" role="alert">
+                                        Windows installer is not available right now. Please contact us at
+                                        <a href="mailto:vmtech.ca@gmail.com">vmtech.ca@gmail.com</a> for help.
+                                    </div>
+                                </t>
                             </div>
-                        </t>
-                        <t t-else="">
-                            <div class="alert alert-warning text-center" role="alert">
-                                The installer is not available right now. Please contact us at
-                                <a href="mailto:vmtech.ca@gmail.com">vmtech.ca@gmail.com</a> for help.
+                            <div class="col-md-6">
+                                <t t-if="mac_installer">
+                                    <div class="card p-4 text-center shadow-sm h-100">
+                                        <h4 class="mb-1">VM TECH Support Client</h4>
+                                        <p class="text-muted mb-3">macOS - Version 1.0.0</p>
+                                        <a href="/download/client-mac" class="btn btn-primary btn-lg mt-auto">
+                                            <i class="fa fa-download me-2"/>Download for Mac
+                                        </a>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="alert alert-warning text-center h-100" role="alert">
+                                        Mac installer is not available right now. Please contact us at
+                                        <a href="mailto:vmtech.ca@gmail.com">vmtech.ca@gmail.com</a> for help.
+                                    </div>
+                                </t>
                             </div>
-                        </t>
+                        </div>
                     </div>
                 </section>
             </div>
