@@ -14,13 +14,8 @@
     <menuitem id="menu_it_project_my_tasks" name="My Tasks" parent="menu_it_project_root"
               action="action_it_project_my_tasks" sequence="30"/>
 
-    <menuitem id="menu_it_project_master_data" name="Master Data" parent="menu_it_project_root"
-              sequence="40" groups="it_support_management.group_it_support_manager"/>
-    <menuitem id="menu_it_project_expense_category" name="Expense Categories" parent="menu_it_project_master_data"
-              action="action_it_expense_category" sequence="10"/>
-
-    <menuitem id="menu_it_project_billing" name="Company Expenses" parent="menu_it_project_root"
-              action="action_company_expenses" sequence="50"
-              groups="it_support_management.group_it_support_manager"/>
+    <!-- Expense Categories and Company Expenses live under the IT Support app's
+         Master Data / Reports & Invoicing sections (see it_support_menus.xml) - they
+         cover the whole business, not just Projects. -->
 
 </odoo>

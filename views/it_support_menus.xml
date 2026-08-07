@@ -25,6 +25,11 @@
     <menuitem id="menu_it_support_agent_commission" name="Agent Commission Rates" parent="menu_it_support_master_data"
               action="action_it_support_agent_commission" sequence="40"
               groups="it_support_management.group_it_support_manager"/>
+    <!-- Company-wide expense categories (rent, utilities...) live here, not under Projects -
+         they cover the whole business, not just project-related costs. -->
+    <menuitem id="menu_it_support_expense_category" name="Expense Categories" parent="menu_it_support_master_data"
+              action="action_it_expense_category" sequence="50"
+              groups="it_support_management.group_it_support_manager"/>
 
     <menuitem id="menu_it_support_billing" name="Reports &amp; Invoicing" parent="menu_it_support_root"
               sequence="40" groups="it_support_management.group_it_support_manager"/>
@@ -32,6 +37,11 @@
               action="action_it_support_monthly_summary" sequence="10"/>
     <menuitem id="menu_it_support_generate_summary" name="Generate Monthly Summary" parent="menu_it_support_billing"
               action="action_it_support_generate_summary_wizard" sequence="20"/>
+    <!-- Company Expenses: overhead (rent, utilities, subscriptions...) for the whole
+         business, not tied to a specific project - belongs in the shared financial
+         reporting section, not inside the Projects app. -->
+    <menuitem id="menu_it_support_company_expenses" name="Company Expenses" parent="menu_it_support_billing"
+              action="action_company_expenses" sequence="25"/>
 
     <!-- No groups restriction: agents can see this too (their own payroll only,
          via rule_agent_payroll_own) - only the generate wizard below stays manager-only. -->
