@@ -55,6 +55,7 @@ IT support service management module for customers:
         'views/it_support_monthly_summary_views.xml',
         'views/it_support_generate_summary_wizard_views.xml',
         'views/res_partner_views.xml',
+        'views/res_partner_bank_views.xml',
         'views/res_company_views.xml',
         'views/res_users_views.xml',
         'views/it_support_sla_views.xml',

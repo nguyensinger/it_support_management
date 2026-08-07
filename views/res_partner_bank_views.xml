@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Same pattern Odoo's own l10n_us module uses for reusing "clearing_number" as a
+         country-specific extra routing number (there: ABA/Routing; here: Institution
+         Number) - relabel via dynamic <label> tags rather than a blanket <attribute
+         name="string"> override, so other countries keep the generic "Clearing Number"
+         label unaffected. -->
+    <record id="view_partner_bank_form_l10n_ca" model="ir.ui.view">
+        <field name="name">res.partner.bank.form.l10n.ca</field>
+        <field name="model">res.partner.bank</field>
+        <field name="inherit_id" ref="base.view_partner_bank_form"/>
+        <field name="arch" type="xml">
+            <field name="clearing_number" position="attributes">
+                <attribute name="nolabel">1</attribute>
+                <attribute name="placeholder">e.g. 001 (3 digits)</attribute>
+            </field>
+            <field name="clearing_number" position="before">
+                <label for="clearing_number" invisible="show_l10n_ca_transit"/>
+                <label for="clearing_number" string="Institution Number" invisible="not show_l10n_ca_transit"/>
+            </field>
+            <field name="clearing_number" position="after">
+                <field name="l10n_ca_transit_number" invisible="not show_l10n_ca_transit"
+                       placeholder="e.g. 07680 (5 digits)"/>
+            </field>
+            <field name="acc_number" position="after">
+                <field name="show_l10n_ca_transit" invisible="1"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>
