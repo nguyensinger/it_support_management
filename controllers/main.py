@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 import logging
+import time
 
 from odoo import http, fields
 from odoo.exceptions import AccessDenied
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
+
+POLL_WAIT_SECONDS = 25
+POLL_CHECK_INTERVAL_SECONDS = 1.5
 
 
 def _json_error(message, status=400):
@@ -314,27 +318,33 @@ class ItSupportApiController(http.Controller):
         client, hence this equivalent endpoint).
 
         Payload: { "channels": ["it_support_ticket_5"], "last": 0 }
-        Returns immediately when a new notification is available, or empty after the
-        timeout (long-poll, defaults to ~30-50s depending on Odoo's bus.bus._poll
-        configuration).
+        Returns as soon as a new notification is available, or an empty list after
+        POLL_WAIT_SECONDS with none.
 
-        IMPORTANT OPERATIONAL NOTE: bus.bus._poll() holds a thread/worker while waiting
-        for an event. If Odoo runs in a typical multi-worker setup (threaded/prefork,
-        not gevent), this route should be configured to run through the dedicated
-        longpolling port (default 8072, handled by --longpolling-port when running
-        odoo-bin with workers > 0) so it doesn't tie up a worker that should be serving
-        regular HTTP requests. The client should call this in a loop: once a response
-        comes back, call again immediately with the same "channels" to keep waiting
-        for the next event (simulating a persistent connection).
+        IMPORTANT: bus.bus._poll() itself does NOT block - in this Odoo version the only
+        actual waiting mechanism lives in the websocket layer (ImDispatch), which this
+        Bearer-API-key client can't use (that requires a session cookie). Calling
+        _poll() once and returning immediately - the original version of this method -
+        turns the client's "call again right away" loop into a busy-loop with no delay
+        at all, hammering the server many times a second per open chat and pegging CPU
+        (this is exactly what happened in production - see incident notes). So this
+        loops itself: check, and if nothing's there yet, sleep briefly and check again,
+        up to POLL_WAIT_SECONDS, so a full round trip takes seconds rather than
+        milliseconds and each client only calls back a couple of times a minute.
         """
         if not channels:
             return _json_error('Missing channels.')
+        Bus = request.env['bus.bus'].sudo()
+        deadline = time.monotonic() + POLL_WAIT_SECONDS
         try:
-            notifications = request.env['bus.bus'].sudo()._poll(channels, last)
+            while True:
+                notifications = Bus._poll(channels, last)
+                if notifications or time.monotonic() >= deadline:
+                    return _json_ok(notifications)
+                time.sleep(POLL_CHECK_INTERVAL_SECONDS)
         except Exception as e:
             _logger.exception('Long-polling error')
             return _json_error(str(e), status=500)
-        return _json_ok(notifications)
 
 
     @http.route('/api/v1/agent/login', type='jsonrpc', auth='public', methods=['POST'], csrf=False)
