@@ -24,6 +24,14 @@ class ItSupportType(models.Model):
              'same Mode - only fall back to "All" if no type-specific row exists.')
     sequence = fields.Integer(default=10)
 
+    reseller_id = fields.Many2one(
+        'res.partner', string='Billing Partner (blank = VM TECH direct)',
+        domain="[('is_company', '=', True)]",
+        help='Leave empty for VM TECH\'s own direct pricing. Set a partner here to define '
+             'the subcontract rate used for customers whose "Billing Partner (Reseller)" '
+             'field (on the Contact) points to that same partner.',
+    )
+
     currency_id = fields.Many2one(
         'res.currency', string='Currency',
         default=lambda self: self.env.company.currency_id,
@@ -109,15 +117,22 @@ class ItSupportType(models.Model):
         return billable_hours * self.price_per_hour
 
     @api.model
-    def find_for(self, mode, customer_company_type):
+    def find_for(self, mode, customer_company_type, reseller_id=False):
         """Look up the pricing row for a given Mode + customer type ('person'/'company',
-        e.g. res.partner.company_type). A row matching the customer's actual type takes
-        priority; falls back to a 'All' row for the same Mode if no type-specific row
+        e.g. res.partner.company_type), scoped to a billing partner (reseller_id) if the
+        customer was referred by a subcontract partner - or VM TECH's own direct pricing
+        if reseller_id is falsy. A row matching the customer's actual type takes priority;
+        falls back to a 'All' row for the same Mode+reseller if no type-specific row
         exists - this keeps a single shared price working for both customer types until
         someone actually adds a type-specific override row.
+
+        Deliberately does NOT fall back to VM TECH's own direct pricing when a reseller_id
+        is given and has no matching row - subcontract work should never silently be
+        billed at VM TECH's own retail rate.
         """
+        domain = [('mode', '=', mode), ('reseller_id', '=', reseller_id)]
         if customer_company_type in ('person', 'company'):
-            specific = self.search([('mode', '=', mode), ('customer_type', '=', customer_company_type)], limit=1)
+            specific = self.search(domain + [('customer_type', '=', customer_company_type)], limit=1)
             if specific:
                 return specific
-        return self.search([('mode', '=', mode), ('customer_type', '=', 'all')], limit=1)
+        return self.search(domain + [('customer_type', '=', 'all')], limit=1)

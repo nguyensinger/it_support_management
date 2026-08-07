@@ -143,6 +143,8 @@
                     <group>
                         <group string="Customer">
                             <field name="customer_id"/>
+                            <field name="billing_partner_id" readonly="1"
+                                   invisible="billing_partner_id == customer_id"/>
                             <field name="device_id"/>
                             <field name="end_user_id"/>
                         </group>

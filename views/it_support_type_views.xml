@@ -10,6 +10,7 @@
                 <field name="name"/>
                 <field name="mode"/>
                 <field name="customer_type"/>
+                <field name="reseller_id" optional="show"/>
                 <field name="price_per_hour"/>
                 <field name="first_block_minutes"/>
                 <field name="block_minutes"/>
@@ -31,6 +32,7 @@
                         <group>
                             <field name="mode"/>
                             <field name="customer_type"/>
+                            <field name="reseller_id"/>
                             <field name="price_per_hour"/>
                             <field name="currency_id" groups="base.group_multi_currency"/>
                         </group>

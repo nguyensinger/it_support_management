@@ -14,7 +14,11 @@ class ItSupportMonthlySummary(models.Model):
     _order = 'year desc, month desc, customer_id'
     _rec_name = 'display_name'
 
-    customer_id = fields.Many2one('res.partner', string='Customer', required=True)
+    customer_id = fields.Many2one(
+        'res.partner', string='Billed To', required=True,
+        help='The customer, or their Billing Partner (Reseller) if the underlying '
+             'tickets were referred through a subcontract partner.',
+    )
     month = fields.Selection([(str(i), str(i)) for i in range(1, 13)], string='Month', required=True)
     year = fields.Integer(string='Year', required=True)
     display_name = fields.Char(compute='_compute_display_name', store=True)
@@ -76,8 +80,16 @@ class ItSupportMonthlySummary(models.Model):
     @api.model
     def generate_for_period(self, month, year, customer_ids=None):
         """Scan completed (done) tickets for the given month/year, group them by
-        customer, and create/refresh the corresponding monthly summary.
+        BILLING partner (the customer's Billing Partner/Reseller if one is set,
+        otherwise the customer themselves - see it.support.ticket.billing_partner_id),
+        and create/refresh the corresponding monthly summary. This is what lets a single
+        reseller's tickets across several different end customers land in one combined
+        summary/invoice.
         Called from the monthly cron job or manually.
+
+        customer_ids, if given, still filters by the ticket's actual (end) customer, not
+        by billing partner - so a manager can regenerate for one specific end customer's
+        tickets even if the resulting summary covers a whole reseller.
         """
         Ticket = self.env['it.support.ticket']
         date_from = fields.Date.to_date(f'{year}-{int(month):02d}-01')
@@ -94,19 +106,19 @@ class ItSupportMonthlySummary(models.Model):
 
         tickets = Ticket.search(domain)
         summaries = self.env['it.support.monthly.summary']
-        by_customer = {}
+        by_billing_partner = {}
         for ticket in tickets:
-            by_customer.setdefault(ticket.customer_id.id, []).append(ticket.id)
+            by_billing_partner.setdefault(ticket.billing_partner_id.id, []).append(ticket.id)
 
-        for customer_id, ticket_ids in by_customer.items():
+        for billing_partner_id, ticket_ids in by_billing_partner.items():
             summary = self.search([
-                ('customer_id', '=', customer_id),
+                ('customer_id', '=', billing_partner_id),
                 ('month', '=', str(int(month))),
                 ('year', '=', year),
             ], limit=1)
             if not summary:
                 summary = self.create({
-                    'customer_id': customer_id,
+                    'customer_id': billing_partner_id,
                     'month': str(int(month)),
                     'year': year,
                 })
@@ -185,8 +197,14 @@ class ItSupportMonthlySummary(models.Model):
                     continue
                 date_label = session.start_time.strftime('%Y-%m-%d') if session.start_time else ''
                 mode_label = 'Onsite' if session.support_mode == 'onsite' else 'Online'
+                # This summary may be a reseller's combined invoice covering several
+                # different end customers - name the actual customer on each line
+                # whenever it differs from who the invoice itself is billed to.
+                customer_label = (
+                    f"{ticket.customer_id.name} — " if ticket.customer_id != self.customer_id else ''
+                )
                 invoice_lines.append((0, 0, {
-                    'name': f"{date_label} — {ticket.subject} (Ticket {ticket.name}, {mode_label})",
+                    'name': f"{customer_label}{date_label} — {ticket.subject} (Ticket {ticket.name}, {mode_label})",
                     'quantity': qty_hours,
                     'price_unit': support_type.price_per_hour,
                     'tax_ids': [(6, 0, gst_tax.ids)],

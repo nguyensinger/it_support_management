@@ -6,7 +6,7 @@
         <field name="model">it.support.monthly.summary</field>
         <field name="arch" type="xml">
             <list>
-                <field name="customer_id"/>
+                <field name="customer_id" string="Billed To"/>
                 <field name="month"/>
                 <field name="year"/>
                 <field name="ticket_count"/>
@@ -38,7 +38,7 @@
                     </div>
                     <group>
                         <group>
-                            <field name="customer_id" readonly="state != 'draft'"/>
+                            <field name="customer_id" string="Billed To" readonly="state != 'draft'"/>
                             <field name="month" readonly="state != 'draft'"/>
                             <field name="year" readonly="state != 'draft'"/>
                         </group>
@@ -54,6 +54,7 @@
                             <field name="ticket_ids" readonly="1">
                                 <list>
                                     <field name="name"/>
+                                    <field name="customer_id" string="End Customer"/>
                                     <field name="subject"/>
                                     <field name="support_type_id" string="Initial Type (planned)" optional="hide"/>
                                     <field name="actual_support_modes" string="Actually Billed As"/>
@@ -75,10 +76,10 @@
         <field name="model">it.support.monthly.summary</field>
         <field name="arch" type="xml">
             <search>
-                <field name="customer_id"/>
+                <field name="customer_id" string="Billed To"/>
                 <field name="year"/>
                 <group>
-                    <filter string="Customer" name="group_customer" context="{'group_by':'customer_id'}"/>
+                    <filter string="Billed To" name="group_customer" context="{'group_by':'customer_id'}"/>
                     <filter string="Year" name="group_year" context="{'group_by':'year'}"/>
                     <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
                 </group>

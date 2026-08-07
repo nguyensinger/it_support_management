@@ -57,11 +57,12 @@ class ItSupportSession(models.Model):
             else:
                 rec.duration = 0.0
 
-    @api.depends('support_mode', 'customer_id.company_type')
+    @api.depends('support_mode', 'customer_id.company_type', 'customer_id.reseller_id')
     def _compute_support_mode_type(self):
         SupportType = self.env['it.support.type']
         for rec in self:
-            rec.support_mode_type_id = SupportType.find_for(rec.support_mode, rec.customer_id.company_type)
+            rec.support_mode_type_id = SupportType.find_for(
+                rec.support_mode, rec.customer_id.company_type, rec.customer_id.reseller_id.id)
 
     def action_end_session(self, note=None, resolution_status=None):
         """Explicit 'End Session' action - REQUIRES note and resolution_status.

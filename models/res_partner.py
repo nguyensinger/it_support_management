@@ -17,6 +17,15 @@ class ResPartner(models.Model):
              'this agent automatically IF they are on duty at the time the ticket is '
              'created; otherwise the ticket goes to whoever is on duty.',
     )
+    reseller_id = fields.Many2one(
+        'res.partner', string='Billing Partner (Reseller)',
+        domain="[('is_company', '=', True), ('id', '!=', id)]",
+        help='If this customer was referred to us by a subcontract partner, set that '
+             'partner here. IT support is still delivered directly to this customer, but '
+             'pricing uses that partner\'s rates (see Support Types & Pricing) and the '
+             'monthly invoice for this customer\'s work is billed to the partner instead '
+             'of to the customer directly.',
+    )
 
     def _compute_it_counts(self):
         for rec in self:

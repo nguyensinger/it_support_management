@@ -101,6 +101,19 @@ class ItSupportTicket(models.Model):
     )
     is_invoiced = fields.Boolean(compute='_compute_billing', string='Invoiced', store=True)
 
+    billing_partner_id = fields.Many2one(
+        'res.partner', string='Billed To', compute='_compute_billing_partner', store=True,
+        help='Who actually gets invoiced for this ticket: the customer\'s Billing Partner '
+             '(Reseller) if one is set, otherwise the customer themselves. Monthly '
+             'summaries group tickets by this field, not by Customer directly, so a '
+             'reseller\'s work across multiple end customers can be billed as one invoice.',
+    )
+
+    @api.depends('customer_id', 'customer_id.reseller_id')
+    def _compute_billing_partner(self):
+        for rec in self:
+            rec.billing_partner_id = rec.customer_id.reseller_id or rec.customer_id
+
 
     # ---------- SLA ----------
     sla_id = fields.Many2one(

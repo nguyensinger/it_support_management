@@ -20,6 +20,7 @@
             </xpath>
             <field name="name" position="after">
                 <field name="preferred_agent_id" invisible="not is_company"/>
+                <field name="reseller_id"/>
             </field>
         </field>
     </record>
