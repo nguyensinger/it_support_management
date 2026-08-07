@@ -210,7 +210,7 @@ class ItSupportAgentPayroll(models.Model):
 
     def action_confirm(self):
         for rec in self:
-            if not rec.session_ids:
+            if not rec.session_ids and not rec.participant_line_ids:
                 raise UserError(_('There are no sessions in this payroll record.'))
             rec.state = 'confirmed'
 

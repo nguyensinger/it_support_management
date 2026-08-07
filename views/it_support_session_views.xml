@@ -41,21 +41,20 @@
                             <field name="state"/>
                         </group>
                     </group>
-                    <group string="Multiple Technicians (optional)">
-                        <p class="text-muted" colspan="2">
-                            Leave empty for the default of a single participant (the IT Support Agent
-                            above, at 100%). Declare 2 or more rows if multiple technicians worked
-                            this session together: the customer's billable hours/amount for this
-                            session are multiplied by the number of rows here, and shares must add
-                            up to 100%.
-                        </p>
-                        <field name="participant_ids" nolabel="1" colspan="2">
-                            <list editable="bottom">
-                                <field name="agent_id"/>
-                                <field name="percentage"/>
-                            </list>
-                        </field>
-                    </group>
+                    <separator string="Multiple Technicians (optional)"/>
+                    <div class="text-muted mb-2">
+                        Leave empty for the default of a single participant (the IT Support Agent
+                        above, at 100%). Declare 2 or more rows if multiple technicians worked
+                        this session together: the customer's billable hours/amount for this
+                        session are multiplied by the number of rows here, and shares must add
+                        up to 100%.
+                    </div>
+                    <field name="participant_ids">
+                        <list editable="bottom">
+                            <field name="agent_id"/>
+                            <field name="percentage"/>
+                        </list>
+                    </field>
                     <group string="Work Notes">
                         <field name="note" nolabel="1"/>
                         <field name="resolution_status"/>
