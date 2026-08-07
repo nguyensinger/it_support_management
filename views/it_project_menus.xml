@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_it_project_root" name="Projects" sequence="26"
+              groups="it_support_management.group_it_support_agent"
+              web_icon="it_support_management,static/description/icon.png"/>
+
+    <menuitem id="menu_it_project_projects" name="Projects" parent="menu_it_project_root"
+              action="action_it_project_project" sequence="10"/>
+
+    <menuitem id="menu_it_project_tasks" name="Tasks" parent="menu_it_project_root"
+              action="action_it_project_task" sequence="20"/>
+
+    <menuitem id="menu_it_project_my_tasks" name="My Tasks" parent="menu_it_project_root"
+              action="action_it_project_my_tasks" sequence="30"/>
+
+    <menuitem id="menu_it_project_master_data" name="Master Data" parent="menu_it_project_root"
+              sequence="40" groups="it_support_management.group_it_support_manager"/>
+    <menuitem id="menu_it_project_expense_category" name="Expense Categories" parent="menu_it_project_master_data"
+              action="action_it_expense_category" sequence="10"/>
+
+    <menuitem id="menu_it_project_billing" name="Company Expenses" parent="menu_it_project_root"
+              action="action_company_expenses" sequence="50"
+              groups="it_support_management.group_it_support_manager"/>
+
+</odoo>

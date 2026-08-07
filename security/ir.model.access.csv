@@ -31,3 +31,9 @@ access_it_support_agent_commission_wizard_manager,it.support.agent.commission.wi
 access_it_support_agent_payroll_agent,it.support.agent.payroll.agent,model_it_support_agent_payroll,group_it_support_agent,1,0,0,0
 access_it_support_agent_payroll_manager,it.support.agent.payroll.manager,model_it_support_agent_payroll,group_it_support_manager,1,1,1,1
 access_it_support_agent_payroll_generate_wizard_manager,it.support.agent.payroll.generate.wizard.manager,model_it_support_agent_payroll_generate_wizard,group_it_support_manager,1,1,1,1
+access_it_project_project_agent,it.project.project.agent,model_it_project_project,group_it_support_agent,1,1,1,0
+access_it_project_project_manager,it.project.project.manager,model_it_project_project,group_it_support_manager,1,1,1,1
+access_it_project_task_agent,it.project.task.agent,model_it_project_task,group_it_support_agent,1,1,1,0
+access_it_project_task_manager,it.project.task.manager,model_it_project_task,group_it_support_manager,1,1,1,1
+access_it_expense_category_agent,it.expense.category.agent,model_it_expense_category,group_it_support_agent,1,0,0,0
+access_it_expense_category_manager,it.expense.category.manager,model_it_expense_category,group_it_support_manager,1,1,1,1

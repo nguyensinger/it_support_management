@@ -20,3 +20,7 @@ from . import it_support_agent_device
 from . import it_support_sla
 from . import it_support_fcm_service
 from . import it_support_booking_request
+from . import it_expense_category
+from . import account_move
+from . import it_project_project
+from . import it_project_task

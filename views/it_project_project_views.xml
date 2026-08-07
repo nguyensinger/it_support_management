@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_it_project_project_list" model="ir.ui.view">
+        <field name="name">it.project.project.list</field>
+        <field name="model">it.project.project</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="project_type"/>
+                <field name="manager_id"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="quoted_amount" sum="Total Quoted"/>
+                <field name="total_cost" sum="Total Cost"/>
+                <field name="estimated_profit" sum="Total Profit"/>
+                <field name="state" widget="badge"
+                       decoration-success="state in ('done','invoiced')"
+                       decoration-info="state == 'in_progress'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_it_project_project_form" model="ir.ui.view">
+        <field name="name">it.project.project.form</field>
+        <field name="model">it.project.project</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start" string="Start" type="object"
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_done" string="Mark Done" type="object"
+                            class="oe_highlight" invisible="state != 'in_progress'"/>
+                    <button name="action_create_deposit_invoice" string="Create Deposit Invoice" type="object"
+                            invisible="deposit_amount &lt;= 0 or deposit_invoice_id or state == 'cancelled'"/>
+                    <button name="action_create_final_invoice" string="Create Final Invoice" type="object"
+                            class="oe_highlight"
+                            invisible="state != 'done' or final_invoice_id"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state in ('cancelled', 'invoiced')"/>
+                    <button name="action_reset_draft" string="Reset to Draft" type="object"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,in_progress,done,invoiced"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_tasks" type="object" class="oe_stat_button" icon="fa-tasks">
+                            <field name="task_count" widget="statinfo" string="Tasks"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Customer">
+                            <field name="customer_id"/>
+                            <field name="project_type"/>
+                            <field name="manager_id"/>
+                        </group>
+                        <group string="Schedule">
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+                    <group string="Billing" col="4">
+                        <field name="quoted_amount"/>
+                        <field name="deposit_amount"/>
+                        <field name="balance_due"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="total_cost"/>
+                        <field name="estimated_profit"/>
+                        <field name="deposit_invoice_id" readonly="1"/>
+                        <field name="final_invoice_id" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Description">
+                            <field name="description"/>
+                        </page>
+                        <page string="Tasks">
+                            <field name="task_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="assigned_to"/>
+                                    <field name="deadline"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'done'"
+                                           decoration-info="state == 'in_progress'"
+                                           decoration-danger="state == 'cancelled'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Input Costs (Vendor Bills)">
+                            <field name="cost_bill_ids" context="{'default_move_type': 'in_invoice', 'default_project_id': id}">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="invoice_date"/>
+                                    <field name="partner_id" string="Vendor"/>
+                                    <field name="amount_total"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_it_project_project_search" model="ir.ui.view">
+        <field name="name">it.project.project.search</field>
+        <field name="model">it.project.project</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="manager_id"/>
+                <filter string="My Projects" name="my_projects" domain="[('manager_id','=',uid)]"/>
+                <filter string="In Progress" name="in_progress" domain="[('state','=','in_progress')]"/>
+                <filter string="Done / Invoiced" name="done" domain="[('state','in',('done','invoiced'))]"/>
+                <group>
+                    <filter string="Customer" name="group_customer" context="{'group_by':'customer_id'}"/>
+                    <filter string="Project Type" name="group_type" context="{'group_by':'project_type'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_it_project_project" model="ir.actions.act_window">
+        <field name="name">Projects</field>
+        <field name="res_model">it.project.project</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_it_project_project_search"/>
+    </record>
+
+    <!-- ===== Tasks ===== -->
+    <record id="view_it_project_task_list" model="ir.ui.view">
+        <field name="name">it.project.task.list</field>
+        <field name="model">it.project.task</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="project_id"/>
+                <field name="name"/>
+                <field name="assigned_to"/>
+                <field name="deadline"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-info="state == 'in_progress'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_it_project_task_kanban" model="ir.ui.view">
+        <field name="name">it.project.task.kanban</field>
+        <field name="model">it.project.task</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="assigned_to"/>
+                <field name="deadline"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card oe_kanban_global_click p-2">
+                            <strong><field name="name"/></strong>
+                            <div class="text-muted"><field name="project_id"/></div>
+                            <div><field name="assigned_to" widget="many2one_avatar_user"/></div>
+                            <div t-if="record.deadline.raw_value" class="text-muted">
+                                <field name="deadline"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_it_project_task_form" model="ir.ui.view">
+        <field name="name">it.project.task.form</field>
+        <field name="model">it.project.task</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start" string="Start" type="object" invisible="state != 'to_do'"/>
+                    <button name="action_done" string="Mark Done" type="object" class="oe_highlight"
+                            invisible="state not in ('to_do','in_progress')"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state in ('done','cancelled')"/>
+                    <button name="action_reset" string="Reset to To Do" type="object"
+                            invisible="state == 'to_do'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="to_do,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Task description"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="assigned_to"/>
+                        </group>
+                        <group>
+                            <field name="deadline"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="note" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_it_project_task_search" model="ir.ui.view">
+        <field name="name">it.project.task.search</field>
+        <field name="model">it.project.task</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="assigned_to"/>
+                <filter string="My Tasks" name="my_tasks" domain="[('assigned_to','=',uid)]"/>
+                <filter string="Open" name="open" domain="[('state','not in',('done','cancelled'))]"/>
+                <group>
+                    <filter string="Project" name="group_project" context="{'group_by':'project_id'}"/>
+                    <filter string="Assigned To" name="group_assigned" context="{'group_by':'assigned_to'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_it_project_task" model="ir.actions.act_window">
+        <field name="name">Tasks</field>
+        <field name="res_model">it.project.task</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_it_project_task_search"/>
+    </record>
+
+    <record id="action_it_project_my_tasks" model="ir.actions.act_window">
+        <field name="name">My Tasks</field>
+        <field name="res_model">it.project.task</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('assigned_to', '=', uid)]</field>
+        <field name="search_view_id" ref="view_it_project_task_search"/>
+    </record>
+
+</odoo>

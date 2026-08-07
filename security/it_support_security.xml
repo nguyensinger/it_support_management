@@ -72,5 +72,22 @@
             <field name="groups" eval="[(4, ref('group_it_support_manager'))]"/>
         </record>
 
+        <!-- Project tasks: same "agent sees own or unassigned, manager sees all" pattern
+             as tickets - a technician's task list shouldn't be cluttered with every other
+             technician's tasks across every project. -->
+        <record id="rule_project_task_agent_only" model="ir.rule">
+            <field name="name">IT Project Task: Agent sees own or unassigned</field>
+            <field name="model_id" ref="model_it_project_task"/>
+            <field name="domain_force">['|', ('assigned_to', '=', user.id), ('assigned_to', '=', False)]</field>
+            <field name="groups" eval="[(4, ref('group_it_support_agent'))]"/>
+        </record>
+
+        <record id="rule_project_task_manager_all" model="ir.rule">
+            <field name="name">IT Project Task: Manager sees all</field>
+            <field name="model_id" ref="model_it_project_task"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_it_support_manager'))]"/>
+        </record>
+
     </data>
 </odoo>

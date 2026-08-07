@@ -14,6 +14,9 @@ IT support service management module for customers:
 * Manage support tickets, working sessions (start/end session)
 * Monthly summary report per customer
 * Generate invoices from monthly summaries
+* Project management (network/camera installs, custom software) with tasks,
+  input costs (vendor bills), deposit + final invoicing
+* General company expense tracking
 * REST API for the Desktop Agent and Mobile App (IT support)
 """,
     'author': 'Your Company',
@@ -58,6 +61,9 @@ IT support service management module for customers:
         'views/it_support_agent_payroll_views.xml',
         'views/it_support_agent_payroll_generate_wizard_views.xml',
         'views/it_support_menus.xml',
+        'views/it_expense_category_views.xml',
+        'views/it_project_project_views.xml',
+        'views/it_project_menus.xml',
         'views/it_support_business_hours_views.xml',
         'views/it_support_booking_request_views.xml',
         'views/website_booking_templates.xml',
