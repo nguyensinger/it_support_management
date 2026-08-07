@@ -17,6 +17,15 @@
                     </t>
                     Cheque payable to: <span t-esc="o.company_id.name"/>
                 </p>
+                <t t-set="it_support_bank" t-value="o.company_id.partner_id.bank_ids[:1]"/>
+                <p class="mb-2" t-if="it_support_bank">
+                    Direct Deposit / EFT —
+                    <t t-if="it_support_bank.show_l10n_ca_transit">
+                        Institution: <span t-esc="it_support_bank.clearing_number"/> &#8226;
+                        Transit: <span t-esc="it_support_bank.l10n_ca_transit_number"/> &#8226;
+                    </t>
+                    Account: <span t-esc="it_support_bank.acc_number"/>
+                </p>
                 <strong>Notes</strong>
                 <p class="mb-2">
                     Thank you for your business! Please contact us within 7 days of receipt for any billing questions.
