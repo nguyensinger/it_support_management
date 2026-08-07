@@ -36,6 +36,21 @@ class ItSupportSession(models.Model):
         help='Pricing entry matching this session\'s actual support mode (used for billing).',
     )
 
+    participant_ids = fields.One2many(
+        'it.support.session.participant', 'session_id', string='Participants',
+        help='Leave empty for the default of a single participant (the IT Support Agent '
+             'above, at 100%). Declare 2 or more rows here if multiple technicians worked '
+             'this session together - the customer\'s billable hours/amount for this '
+             'session are then multiplied by the number of participants, and each '
+             'participant\'s payroll commission is their declared share of that revenue.',
+    )
+    participant_count = fields.Integer(
+        string='Participant Count', compute='_compute_participant_count', store=True,
+        help='Number of declared participants, or 1 if none were declared (default: just '
+             'the IT Support Agent). Multiplies the billable hours/amount charged to the '
+             'customer for this session.',
+    )
+
     note = fields.Text(string='Work Notes')
     resolution_status = fields.Selection([
         ('resolved', 'Resolved'),
@@ -56,6 +71,23 @@ class ItSupportSession(models.Model):
                 rec.duration = delta.total_seconds() / 3600.0
             else:
                 rec.duration = 0.0
+
+    @api.depends('participant_ids')
+    def _compute_participant_count(self):
+        for rec in self:
+            rec.participant_count = len(rec.participant_ids) or 1
+
+    @api.constrains('participant_ids', 'participant_ids.percentage')
+    def _check_participant_percentages(self):
+        for rec in self:
+            if not rec.participant_ids:
+                continue
+            total = sum(rec.participant_ids.mapped('percentage'))
+            if abs(total - 100.0) > 0.01:
+                raise UserError(_(
+                    'Declared participant shares for a session must add up to 100%% '
+                    '(currently %.2f%%).'
+                ) % total)
 
     @api.depends('support_mode', 'customer_id.company_type', 'customer_id.reseller_id')
     def _compute_support_mode_type(self):

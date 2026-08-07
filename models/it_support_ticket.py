@@ -476,6 +476,7 @@ class ItSupportTicket(models.Model):
             rec.has_running_session = bool(rec.session_ids.filtered(lambda s: s.state == 'running'))
 
     @api.depends('session_ids.duration', 'session_ids.state', 'session_ids.support_mode',
+                 'session_ids.participant_count',
                  'session_ids.support_mode_type_id.price_per_hour',
                  'session_ids.support_mode_type_id.first_block_minutes',
                  'session_ids.support_mode_type_id.block_minutes',
@@ -494,8 +495,11 @@ class ItSupportTicket(models.Model):
                 support_type = session.support_mode_type_id or rec.support_type_id
                 if not support_type:
                     continue
-                billable_hours += support_type.compute_billable_hours(session.duration)
-                amount += support_type.compute_amount(session.duration)
+                # participant_count is 1 by default (no participants declared) - multiple
+                # technicians working the same session together multiplies the hours/amount
+                # billed to the customer, same as sending that many separate sessions.
+                billable_hours += support_type.compute_billable_hours(session.duration) * session.participant_count
+                amount += support_type.compute_amount(session.duration) * session.participant_count
                 mode_label = dict(session._fields['support_mode'].selection).get(session.support_mode)
                 if mode_label and mode_label not in modes_used:
                     modes_used.append(mode_label)

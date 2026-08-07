@@ -58,13 +58,22 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Session Details">
+                        <page string="Solo Sessions">
                             <field name="session_ids" readonly="1">
                                 <list>
                                     <field name="ticket_id"/>
                                     <field name="support_mode"/>
                                     <field name="start_time"/>
                                     <field name="duration"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Multi-Tech Participations">
+                            <field name="participant_line_ids" readonly="1">
+                                <list>
+                                    <field name="ticket_id"/>
+                                    <field name="session_id"/>
+                                    <field name="percentage"/>
                                 </list>
                             </field>
                         </page>

@@ -26,7 +26,14 @@ class ItSupportAgentPayroll(models.Model):
              "user profile afterwards does not retroactively affect this record.",
     )
 
-    session_ids = fields.One2many('it.support.session', 'payroll_id', string='Sessions')
+    session_ids = fields.One2many(
+        'it.support.session', 'payroll_id', string='Sessions (solo)',
+        help='Sessions with no declared participants (the default: just this agent, at 100%).',
+    )
+    participant_line_ids = fields.One2many(
+        'it.support.session.participant', 'payroll_id', string='Session Participations',
+        help='This agent\'s declared share of sessions where 2+ technicians worked together.',
+    )
     session_count = fields.Integer(compute='_compute_totals', string='Session Count')
     total_hours = fields.Float(compute='_compute_totals', string='Billable Hours')
     total_revenue = fields.Monetary(compute='_compute_totals', string='Session Revenue', store=True)
@@ -57,18 +64,37 @@ class ItSupportAgentPayroll(models.Model):
                  'session_ids.support_mode_type_id.first_block_minutes',
                  'session_ids.support_mode_type_id.block_minutes',
                  'session_ids.support_mode_type_id.min_charge_blocks',
+                 'participant_line_ids.percentage',
+                 'participant_line_ids.session_id.duration',
+                 'participant_line_ids.session_id.participant_count',
+                 'participant_line_ids.session_id.support_mode_type_id.price_per_hour',
+                 'participant_line_ids.session_id.support_mode_type_id.first_block_minutes',
+                 'participant_line_ids.session_id.support_mode_type_id.block_minutes',
+                 'participant_line_ids.session_id.support_mode_type_id.min_charge_blocks',
                  'commission_rate')
     def _compute_totals(self):
         for rec in self:
             hours = 0.0
             revenue = 0.0
+            # Solo sessions (no declared participants) - this agent gets the full session
+            # revenue, exactly as before this feature existed.
             for session in rec.session_ids:
                 support_type = session.support_mode_type_id or session.ticket_id.support_type_id
                 if not support_type:
                     continue
                 hours += support_type.compute_billable_hours(session.duration)
                 revenue += support_type.compute_amount(session.duration)
-            rec.session_count = len(rec.session_ids)
+            # Multi-participant sessions - this agent only gets their declared share of the
+            # (participant-count-multiplied) session revenue.
+            for line in rec.participant_line_ids:
+                session = line.session_id
+                support_type = session.support_mode_type_id or session.ticket_id.support_type_id
+                if not support_type:
+                    continue
+                share = line.percentage / 100.0
+                hours += support_type.compute_billable_hours(session.duration) * session.participant_count * share
+                revenue += support_type.compute_amount(session.duration) * session.participant_count * share
+            rec.session_count = len(rec.session_ids) + len(rec.participant_line_ids)
             rec.total_hours = hours
             rec.total_revenue = revenue
             rec.commission_amount = revenue * (rec.commission_rate / 100.0)
@@ -80,34 +106,59 @@ class ItSupportAgentPayroll(models.Model):
         payroll record. Only invoiced tickets count, so commission is only paid out on
         revenue actually billed to the customer.
 
-        A session already claimed by a payroll record (payroll_id set) is never picked
-        up again, so re-running this for the same period only adds newly-eligible
-        sessions (e.g. a ticket invoiced late). If the existing payroll record for an
-        agent/period is no longer Draft (already Confirmed/Paid), newly-eligible
-        sessions are left unclaimed rather than silently changing an already-settled
-        payroll amount - the manager can review and add them manually.
+        Two kinds of contributions get claimed, per agent:
+        - "Solo" sessions with no declared participants (the default: just the agent_id
+          on the session, at 100%) - claimed via session.payroll_id, exactly as before
+          multi-participant sessions existed.
+        - Participant lines on sessions where 2+ technicians were declared - each
+          it.support.session.participant row is claimed individually via its own
+          payroll_id, crediting only that agent's declared percentage share.
+
+        Either way, something already claimed (payroll_id set) is never picked up again,
+        so re-running this for the same period only adds newly-eligible contributions
+        (e.g. a ticket invoiced late). If the existing payroll record for an agent/period
+        is no longer Draft (already Confirmed/Paid), newly-eligible contributions are left
+        unclaimed rather than silently changing an already-settled payroll amount - the
+        manager can review and add them manually.
         """
         Session = self.env['it.support.session']
+        Participant = self.env['it.support.session.participant']
         date_from = fields.Date.to_date(f'{year}-{int(month):02d}-01')
         date_to = date_from + relativedelta(months=1)
 
-        domain = [
+        session_domain = [
             ('state', '=', 'closed'),
             ('end_time', '>=', date_from),
             ('end_time', '<', date_to),
             ('payroll_id', '=', False),
+            ('participant_ids', '=', False),
             ('ticket_id.is_invoiced', '=', True),
         ]
         if agent_ids:
-            domain.append(('agent_id', 'in', agent_ids))
+            session_domain.append(('agent_id', 'in', agent_ids))
+        solo_sessions = Session.search(session_domain)
 
-        sessions = Session.search(domain)
+        participant_domain = [
+            ('payroll_id', '=', False),
+            ('session_id.state', '=', 'closed'),
+            ('session_id.end_time', '>=', date_from),
+            ('session_id.end_time', '<', date_to),
+            ('session_id.ticket_id.is_invoiced', '=', True),
+        ]
+        if agent_ids:
+            participant_domain.append(('agent_id', 'in', agent_ids))
+        participant_lines = Participant.search(participant_domain)
+
+        by_agent_sessions = {}
+        for session in solo_sessions:
+            by_agent_sessions.setdefault(session.agent_id.id, []).append(session.id)
+
+        by_agent_lines = {}
+        for line in participant_lines:
+            by_agent_lines.setdefault(line.agent_id.id, []).append(line.id)
+
         payrolls = self.env['it.support.agent.payroll']
-        by_agent = {}
-        for session in sessions:
-            by_agent.setdefault(session.agent_id.id, []).append(session.id)
-
-        for agent_id, session_ids in by_agent.items():
+        for agent_id in set(by_agent_sessions) | set(by_agent_lines):
             payroll = self.search([
                 ('agent_id', '=', agent_id),
                 ('month', '=', str(int(month))),
@@ -123,12 +174,17 @@ class ItSupportAgentPayroll(models.Model):
                 })
             elif payroll.state != 'draft':
                 _logger.warning(
-                    'Skipping %d newly-invoiced session(s) for agent %s, %s/%s: existing '
+                    'Skipping newly-invoiced contribution(s) for agent %s, %s/%s: existing '
                     'payroll record is already %s. Add them to a new/manual record instead.',
-                    len(session_ids), payroll.agent_id.name, month, year, payroll.state,
+                    payroll.agent_id.name, month, year, payroll.state,
                 )
                 continue
-            Session.browse(session_ids).write({'payroll_id': payroll.id})
+            session_ids = by_agent_sessions.get(agent_id)
+            if session_ids:
+                Session.browse(session_ids).write({'payroll_id': payroll.id})
+            line_ids = by_agent_lines.get(agent_id)
+            if line_ids:
+                Participant.browse(line_ids).write({'payroll_id': payroll.id})
             payrolls |= payroll
         return payrolls
 

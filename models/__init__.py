@@ -8,6 +8,7 @@ from . import it_customer_device
 from . import it_support_type
 from . import it_support_duty_schedule
 from . import it_support_session
+from . import it_support_session_participant
 from . import it_support_ticket
 from . import it_support_session_end_wizard
 from . import it_support_ticket_reply_wizard

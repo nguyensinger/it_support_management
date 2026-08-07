@@ -37,3 +37,5 @@ access_it_project_task_agent,it.project.task.agent,model_it_project_task,group_i
 access_it_project_task_manager,it.project.task.manager,model_it_project_task,group_it_support_manager,1,1,1,1
 access_it_expense_category_agent,it.expense.category.agent,model_it_expense_category,group_it_support_agent,1,0,0,0
 access_it_expense_category_manager,it.expense.category.manager,model_it_expense_category,group_it_support_manager,1,1,1,1
+access_it_support_session_participant_agent,it.support.session.participant.agent,model_it_support_session_participant,group_it_support_agent,1,1,1,1
+access_it_support_session_participant_manager,it.support.session.participant.manager,model_it_support_session_participant,group_it_support_manager,1,1,1,1

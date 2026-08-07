@@ -53,7 +53,8 @@ class ItSupportMonthlySummary(models.Model):
         for rec in self:
             rec.display_name = f"{rec.customer_id.name} - {rec.month}/{rec.year}" if rec.customer_id else ''
 
-    @api.depends('ticket_ids.billable_hours', 'ticket_ids.amount_total', 'ticket_ids.session_ids.support_mode')
+    @api.depends('ticket_ids.billable_hours', 'ticket_ids.amount_total', 'ticket_ids.session_ids.support_mode',
+                 'ticket_ids.session_ids.participant_count')
     def _compute_totals(self):
         for rec in self:
             onsite_hours = onsite_amount = online_hours = online_amount = 0.0
@@ -62,8 +63,8 @@ class ItSupportMonthlySummary(models.Model):
                     support_type = session.support_mode_type_id or ticket.support_type_id
                     if not support_type:
                         continue
-                    hours = support_type.compute_billable_hours(session.duration)
-                    amount = support_type.compute_amount(session.duration)
+                    hours = support_type.compute_billable_hours(session.duration) * session.participant_count
+                    amount = support_type.compute_amount(session.duration) * session.participant_count
                     if session.support_mode == 'onsite':
                         onsite_hours += hours
                         onsite_amount += amount
@@ -192,7 +193,7 @@ class ItSupportMonthlySummary(models.Model):
                 support_type = session.support_mode_type_id or ticket.support_type_id
                 if not support_type:
                     continue
-                qty_hours = support_type.compute_billable_hours(session.duration)
+                qty_hours = support_type.compute_billable_hours(session.duration) * session.participant_count
                 if qty_hours <= 0:
                     continue
                 date_label = session.start_time.strftime('%Y-%m-%d') if session.start_time else ''
@@ -203,8 +204,11 @@ class ItSupportMonthlySummary(models.Model):
                 customer_label = (
                     f"{ticket.customer_id.name} — " if ticket.customer_id != self.customer_id else ''
                 )
+                participant_label = (
+                    f" x{session.participant_count} techs" if session.participant_count > 1 else ''
+                )
                 invoice_lines.append((0, 0, {
-                    'name': f"{customer_label}{date_label} — {ticket.subject} (Ticket {ticket.name}, {mode_label})",
+                    'name': f"{customer_label}{date_label} — {ticket.subject} (Ticket {ticket.name}, {mode_label}{participant_label})",
                     'quantity': qty_hours,
                     'price_unit': support_type.price_per_hour,
                     'tax_ids': [(6, 0, gst_tax.ids)],
