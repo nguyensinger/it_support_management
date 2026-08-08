@@ -9,28 +9,19 @@
         <xpath expr="//div[@id='payment_term']" position="after">
             <t t-set="it_support_ticket_count"
                t-value="o.env['it.support.ticket'].sudo().search_count([('invoice_line_id', 'in', o.invoice_line_ids.ids)])"/>
-            <div class="mt-3" t-if="it_support_ticket_count">
+            <div class="mt-2" t-if="it_support_ticket_count" style="font-size: 92%;">
                 <strong>Payment Methods</strong>
-                <p class="mb-2">
+                <p class="mb-1">
                     <t t-if="o.company_id.etransfer_email">
                         e-Transfer: <span t-esc="o.company_id.etransfer_email"/> &#8226;
                     </t>
                     Cheque payable to: <span t-esc="o.company_id.name"/>
                 </p>
                 <t t-set="it_support_bank" t-value="o.company_id.partner_id.bank_ids[:1]"/>
-                <p class="mb-2" t-if="it_support_bank">
+                <p class="mb-1" t-if="it_support_bank">
                     Direct Deposit / EFT —
                     <t t-if="it_support_bank.bank_id">
-                        Bank: <span t-esc="it_support_bank.bank_id.name"/>
-                        <t t-if="it_support_bank.bank_id.street or it_support_bank.bank_id.city">
-                            (<span t-esc="', '.join(filter(None, [
-                                it_support_bank.bank_id.street,
-                                it_support_bank.bank_id.city,
-                                it_support_bank.bank_id.state.name,
-                                it_support_bank.bank_id.zip,
-                            ]))"/>)
-                        </t>
-                        &#8226;
+                        Bank: <span t-esc="it_support_bank.bank_id.name"/> &#8226;
                     </t>
                     <t t-if="it_support_bank.show_l10n_ca_transit">
                         Institution: <span t-esc="it_support_bank.clearing_number"/> &#8226;
@@ -39,10 +30,10 @@
                     Account: <span t-esc="it_support_bank.acc_number"/>
                 </p>
                 <strong>Notes</strong>
-                <p class="mb-2">
+                <p class="mb-1">
                     Thank you for your business! Please contact us within 7 days of receipt for any billing questions.
                 </p>
-                <p class="text-muted" style="font-size: 85%;">
+                <p class="text-muted mb-0" style="font-size: 85%;">
                     * IT support services (labour) are not subject to BC PST. If hardware or equipment is
                     sold on a future invoice, 7% PST typically applies to that portion.
                 </p>
