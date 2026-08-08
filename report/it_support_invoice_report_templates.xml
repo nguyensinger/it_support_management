@@ -20,6 +20,18 @@
                 <t t-set="it_support_bank" t-value="o.company_id.partner_id.bank_ids[:1]"/>
                 <p class="mb-2" t-if="it_support_bank">
                     Direct Deposit / EFT —
+                    <t t-if="it_support_bank.bank_id">
+                        Bank: <span t-esc="it_support_bank.bank_id.name"/>
+                        <t t-if="it_support_bank.bank_id.street or it_support_bank.bank_id.city">
+                            (<span t-esc="', '.join(filter(None, [
+                                it_support_bank.bank_id.street,
+                                it_support_bank.bank_id.city,
+                                it_support_bank.bank_id.state.name,
+                                it_support_bank.bank_id.zip,
+                            ]))"/>)
+                        </t>
+                        &#8226;
+                    </t>
                     <t t-if="it_support_bank.show_l10n_ca_transit">
                         Institution: <span t-esc="it_support_bank.clearing_number"/> &#8226;
                         Transit: <span t-esc="it_support_bank.l10n_ca_transit_number"/> &#8226;
