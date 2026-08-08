@@ -26,3 +26,4 @@ from . import account_move
 from . import it_project_project
 from . import it_project_task
 from . import res_partner_bank
+from . import account_payment_method

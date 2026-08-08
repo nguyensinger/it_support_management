@@ -45,6 +45,7 @@ IT support service management module for customers:
         'data/ir_cron_data.xml',
         'data/it_support_server_action_data.xml',
         'data/it_support_mail_template_data.xml',
+        'data/it_support_payment_method_data.xml',
         # views
         'views/it_customer_device_views.xml',
         'views/it_support_end_user_views.xml',
