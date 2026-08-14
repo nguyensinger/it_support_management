@@ -8,6 +8,7 @@
          "Contact us" is already a top menu item, so the CTA button was redundant. -->
     <template id="header_booking_button" inherit_id="website.header_call_to_action" name="Header Booking Button">
         <xpath expr="//a[@href='/contactus'][hasclass('btn_cta')]" position="before">
+            <a href="/signup-account" class="btn btn-outline-primary btn_cta me-2" groups="base.group_public">Sign Up</a>
             <a href="/booking" class="btn btn-outline-primary btn_cta me-2">Booking</a>
         </xpath>
         <xpath expr="//a[@href='/contactus'][hasclass('btn_cta')]" position="attributes">

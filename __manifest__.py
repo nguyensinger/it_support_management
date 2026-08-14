@@ -71,6 +71,7 @@ IT support service management module for customers:
         'views/it_support_business_hours_views.xml',
         'views/it_support_booking_request_views.xml',
         'views/website_booking_templates.xml',
+        'views/website_signup_templates.xml',
         'views/website_footer_templates.xml',
         'views/website_header_booking_button.xml',
         'views/website_debrand_templates.xml',

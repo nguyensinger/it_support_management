@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="website_signup_page" name="Customer Sign Up">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure oe_empty">
+                <section class="s_title parallax s_parallax_is_fixed bg-black-50 pt24 pb24" data-scroll-background-ratio="1">
+                    <span class="s_parallax_bg oe_img_bg" style="background-image: url('/web/image/website.s_parallax_default_image'); background-position: 50% 0;"/>
+                    <div class="o_we_bg_filter bg-black-50"/>
+                    <div class="container">
+                        <h1>Create Your Account</h1>
+                    </div>
+                </section>
+
+                <section class="s_text_block pt80 pb80">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-7">
+
+                                <t t-if="success">
+                                    <div class="alert alert-success" role="alert">
+                                        Almost done! We've emailed you a link to activate your account and
+                                        set a password. Check your inbox (and spam folder).
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <p class="mb-4">
+                                        Sign up to track your support tickets and invoices online. No
+                                        password needed here - we'll email you a link to set one.
+                                    </p>
+
+                                    <t t-if="'captcha' in error_fields">
+                                        <div class="alert alert-danger" role="alert">
+                                            We couldn't verify this submission wasn't sent by a bot. Please try again.
+                                        </div>
+                                    </t>
+                                    <t t-elif="'staff_email' in error_fields">
+                                        <div class="alert alert-danger" role="alert">
+                                            This email is already associated with a VM TECH staff account. Please
+                                            contact us if you believe this is an error.
+                                        </div>
+                                    </t>
+                                    <t t-elif="'general' in error_fields">
+                                        <div class="alert alert-danger" role="alert">
+                                            Something went wrong creating your account. Please try again, or
+                                            contact us at <a href="mailto:vmtech.ca@gmail.com">vmtech.ca@gmail.com</a>.
+                                        </div>
+                                    </t>
+                                    <t t-elif="error_fields">
+                                        <div class="alert alert-danger" role="alert">
+                                            Please fill in the required field(s):
+                                            <t t-esc="', '.join(error_fields)"/>
+                                        </div>
+                                    </t>
+
+                                    <form action="/signup-account/submit" method="post" class="o_mark_required" data-captcha="signup_account">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                                        <div class="mb-3">
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="company_type"
+                                                       id="signup_type_person" value="person"
+                                                       t-att-checked="formatted.get('company_type', 'person') == 'person' or None"
+                                                       onchange="document.getElementById('signup_company_wrap').classList.toggle('d-none', this.value !== 'company')"/>
+                                                <label class="form-check-label" for="signup_type_person">Person</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="company_type"
+                                                       id="signup_type_company" value="company"
+                                                       t-att-checked="formatted.get('company_type') == 'company' or None"
+                                                       onchange="document.getElementById('signup_company_wrap').classList.toggle('d-none', this.value !== 'company')"/>
+                                                <label class="form-check-label" for="signup_type_company">Company</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label" for="signup_name">Full Name</label>
+                                            <input type="text" class="form-control" id="signup_name" name="name"
+                                                   required="required" t-att-value="formatted.get('name')"/>
+                                        </div>
+
+                                        <div id="signup_company_wrap" t-attf-class="mb-3 #{'' if formatted.get('company_type') == 'company' else 'd-none'}">
+                                            <label class="form-label" for="signup_company">Company</label>
+                                            <input type="text" class="form-control" id="signup_company" name="company_name"
+                                                   t-att-value="formatted.get('company_name')"/>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label" for="signup_email">Email</label>
+                                                <input type="email" class="form-control" id="signup_email" name="email"
+                                                       required="required" t-att-value="formatted.get('email')"/>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label" for="signup_phone">Phone</label>
+                                                <input type="tel" class="form-control" id="signup_phone" name="phone"
+                                                       required="required" t-att-value="formatted.get('phone')"/>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label" for="signup_street">Street Address</label>
+                                            <input type="text" class="form-control" id="signup_street" name="street"
+                                                   required="required" t-att-value="formatted.get('street')"/>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-5 mb-3">
+                                                <label class="form-label" for="signup_city">City</label>
+                                                <input type="text" class="form-control" id="signup_city" name="city"
+                                                       required="required" t-att-value="formatted.get('city')"/>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label" for="signup_state">Province</label>
+                                                <select class="form-select" id="signup_state" name="state_id" required="required">
+                                                    <option value="">Select...</option>
+                                                    <t t-foreach="provinces" t-as="province">
+                                                        <option t-att-value="province.id"
+                                                                t-att-selected="str(province.id) == formatted.get('state_id') or None"
+                                                                t-esc="province.name"/>
+                                                    </t>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3 mb-3">
+                                                <label class="form-label" for="signup_zip">Zip Code</label>
+                                                <input type="text" class="form-control" id="signup_zip" name="zip"
+                                                       required="required" t-att-value="formatted.get('zip')"/>
+                                            </div>
+                                        </div>
+
+                                        <p class="mb-2">
+                                            <small class="text-muted">
+                                                Protected by reCAPTCHA,
+                                                <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a>
+                                                &amp;
+                                                <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a>
+                                                apply.
+                                            </small>
+                                        </p>
+                                        <button type="submit" class="btn btn-primary">Create Account</button>
+                                        <a href="/web/login" class="btn btn-link">Already have an account? Sign in</a>
+                                    </form>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+</odoo>
