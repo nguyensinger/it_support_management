@@ -18,13 +18,30 @@
     <!-- Moves Sign In / the logged-in user dropdown to after the Booking button,
          instead of before it, then puts Sign Up right after Sign In (reads as
          "already have an account? Sign in - otherwise, Sign Up"). All three live
-         as siblings of the Call To Action slot in the default header layout. -->
+         as siblings of the Call To Action slot in the default header layout.
+
+         Sign In gets the bold outlined-button look (existing customers logging
+         in is the primary action); Sign Up gets the plainer default nav-link
+         style Sign In used to have - it should read as the secondary option,
+         not compete with it. -->
     <template id="header_login_after_booking" inherit_id="website.template_header_default"
               name="Move Sign In after Booking">
         <xpath expr="//t[@t-call='website.placeholder_header_call_to_action']" position="after">
             <xpath expr="//t[@t-call='portal.placeholder_user_sign_in']" position="move"/>
-            <a href="/signup-account" class="btn btn-outline-primary btn_cta me-2" groups="base.group_public">Sign Up</a>
+            <a href="/signup-account" class="o_nav_link_btn nav-link border px-3" groups="base.group_public">Sign Up</a>
             <xpath expr="//t[@t-call='portal.user_dropdown']" position="move"/>
+        </xpath>
+    </template>
+
+    <!-- t-call doesn't inline its target at inheritance time, so overriding the
+         Sign In link's style has to target portal.user_sign_in directly (the
+         view that actually renders the <a> tag), not website.template_header_default
+         where it's only referenced. This overrides the dynamic _link_class this
+         site-wide (desktop + mobile use the same "Sign In" placeholder), which
+         is fine here since VM Tech only ever uses this one header layout. -->
+    <template id="sign_in_prominent_style" inherit_id="portal.user_sign_in" name="Prominent Sign In button">
+        <xpath expr="//a[@t-attf-href='/web/login']" position="attributes">
+            <attribute name="t-attf-class">btn btn-outline-primary btn_cta me-2</attribute>
         </xpath>
     </template>
 
