@@ -16,16 +16,28 @@
     </template>
 
     <template id="portal_my_home_ticket" name="Support Tickets" inherit_id="portal.portal_my_home"
-              customize_show="True" priority="30">
-        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+              customize_show="True" priority="25">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-set="portal_client_category_enable" t-value="True"/>
+        </xpath>
+        <div id="portal_client_category" position="inside">
             <t t-call="portal.portal_docs_entry">
-                <t t-set="icon" t-value="'/base_setup/static/description/icon.png'"/>
+                <t t-set="icon" t-value="'/it_support_management/static/src/img/support_ticket.svg'"/>
                 <t t-set="title">Support Tickets</t>
                 <t t-set="url" t-value="'/my/tickets'"/>
                 <t t-set="text">Follow the status of your support tickets</t>
                 <t t-set="placeholder_count" t-value="'ticket_count'"/>
             </t>
-        </xpath>
+        </div>
+    </template>
+
+    <!-- VM Tech has no "Orders" business (no sale/e-commerce flow for customers) -
+         drop the "Your Orders" tile that the sale module adds to the portal home,
+         so Support Tickets takes its place instead. Priority 21 so it runs right
+         after sale's own insertion (priority 20) has added the tile to remove. -->
+    <template id="portal_my_home_hide_orders" inherit_id="portal.portal_my_home" priority="21">
+        <xpath expr="//div[@id='portal_client_category']/t[@t-call='portal.portal_docs_entry'][.//t[@t-set='icon'][contains(@t-value, 'bag.svg')]]"
+               position="replace"/>
     </template>
 
     <template id="portal_my_tickets" name="My Tickets">

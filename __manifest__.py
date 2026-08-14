@@ -28,6 +28,7 @@ IT support service management module for customers:
         'contacts',
         'account',
         'product',
+        'sale',
         'website',
         'portal',
         'l10n_ca',
