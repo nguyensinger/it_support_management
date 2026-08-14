@@ -85,6 +85,11 @@ IT support service management module for customers:
     'demo': [
         'data/it_support_demo.xml',
     ],
+    'assets': {
+        'web.assets_frontend': [
+            'it_support_management/static/src/js/portal_home_counters_patch.js',
+        ],
+    },
     'installable': True,
     'application': True,
     'auto_install': False,
