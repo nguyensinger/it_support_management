@@ -89,6 +89,28 @@ class ItSupportCustomerPortal(CustomerPortal):
             'description': Markup('<p>%s</p>') % description if description else False,
             'priority': priority,
         })
+
+        # Cap at 10 files / 10MB each - generous for photos/screenshots, not
+        # meant as a real abuse guard (auth='user' already limits this to
+        # logged-in portal customers).
+        MAX_ATTACHMENTS = 10
+        MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
+        attachments = []
+        for file in request.httprequest.files.getlist('attachments')[:MAX_ATTACHMENTS]:
+            if not file or not file.filename:
+                continue
+            data = file.read()
+            if data and len(data) <= MAX_ATTACHMENT_SIZE:
+                attachments.append((file.filename, data))
+
+        if attachments:
+            ticket.sudo().message_post(
+                body=Markup('<p>Attachment(s) from customer</p>'),
+                message_type='comment',
+                subtype_xmlid='mail.mt_comment',
+                attachments=attachments,
+            )
+
         return request.redirect('/my/tickets/%s' % ticket.id)
 
     @http.route(['/my/tickets/<int:ticket_id>'], type='http', auth='user', website=True)

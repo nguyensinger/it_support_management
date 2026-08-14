@@ -194,6 +194,19 @@
                                             <small class="text-muted" t-out="message.date"/>
                                         </div>
                                         <div t-field="message.body" class="mt-1"/>
+                                        <div t-if="message.attachment_ids" class="d-flex flex-wrap gap-2 mt-2">
+                                            <t t-foreach="message.attachment_ids" t-as="attachment">
+                                                <a t-att-href="'/web/content/%s?download=true' % attachment.id"
+                                                   target="_blank" class="d-inline-block">
+                                                    <img t-if="attachment.mimetype and attachment.mimetype.startswith('image/')"
+                                                         t-attf-src="/web/image/{{attachment.id}}/128x128"
+                                                         class="rounded border" style="height: 96px; width: 96px; object-fit: cover;"/>
+                                                    <span t-else="" class="badge text-bg-light border p-2">
+                                                        <i class="fa fa-paperclip me-1"/><t t-out="attachment.name"/>
+                                                    </span>
+                                                </a>
+                                            </t>
+                                        </div>
                                     </div>
                                 </t>
                             </div>
@@ -220,7 +233,7 @@
                         </div>
                     </t>
 
-                    <form action="/my/tickets/new/submit" method="post">
+                    <form action="/my/tickets/new/submit" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 
                         <div class="mb-3">
@@ -243,6 +256,12 @@
                             <label class="form-label" for="new_ticket_description">What do you need help with?</label>
                             <textarea class="form-control" id="new_ticket_description" name="description"
                                       rows="6" t-esc="formatted.get('description') or ''"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="new_ticket_attachments">Attach photos or screenshots (optional)</label>
+                            <input type="file" class="form-control" id="new_ticket_attachments" name="attachments"
+                                   multiple="multiple" accept="image/*,.pdf"/>
                         </div>
 
                         <button type="submit" class="btn btn-primary">Submit Ticket</button>
