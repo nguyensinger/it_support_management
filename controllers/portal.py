@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from markupsafe import Markup
+from werkzeug.urls import url_encode
+
 from odoo import http, _
 from odoo.exceptions import AccessError, MissingError
 from odoo.http import request
@@ -52,6 +55,41 @@ class ItSupportCustomerPortal(CustomerPortal):
             'sortby': sortby,
         })
         return request.render('it_support_management.portal_my_tickets', values)
+
+    @http.route(['/my/tickets/new'], type='http', auth='user', website=True)
+    def portal_new_ticket_form(self, **kw):
+        values = self._prepare_portal_layout_values()
+        values.update({
+            'page_name': 'ticket',
+            'error': kw.get('error'),
+            'formatted': dict(kw),
+        })
+        return request.render('it_support_management.portal_new_ticket', values)
+
+    @http.route(['/my/tickets/new/submit'], type='http', auth='user', website=True, methods=['POST'], csrf=True)
+    def portal_new_ticket_submit(self, **post):
+        subject = (post.get('subject') or '').strip()
+        if not subject:
+            return request.redirect('/my/tickets/new?%s' % url_encode({
+                'error': 'subject',
+                'description': post.get('description', ''),
+                'priority': post.get('priority', ''),
+            }))
+
+        priority = post.get('priority') if post.get('priority') in ('0', '1', '2', '3') else '1'
+        description = (post.get('description') or '').strip()
+
+        # customer_id is derived from the logged-in user, never taken from client
+        # input - a portal user must not be able to create a ticket under a
+        # different customer's name just by tampering with a form field.
+        customer = request.env.user.partner_id.commercial_partner_id
+        ticket = request.env['it.support.ticket'].sudo().create({
+            'customer_id': customer.id,
+            'subject': subject,
+            'description': Markup('<p>%s</p>') % description if description else False,
+            'priority': priority,
+        })
+        return request.redirect('/my/tickets/%s' % ticket.id)
 
     @http.route(['/my/tickets/<int:ticket_id>'], type='http', auth='user', website=True)
     def portal_my_ticket(self, ticket_id, access_token=None, **kw):

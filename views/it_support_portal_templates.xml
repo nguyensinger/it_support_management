@@ -72,6 +72,12 @@
                 <t t-set="title">Support Tickets</t>
             </t>
 
+            <div class="mb-3">
+                <a href="/my/tickets/new" class="btn btn-primary">
+                    <i class="fa fa-plus me-1"/>New Ticket
+                </a>
+            </div>
+
             <t t-if="not tickets">
                 <div class="alert alert-warning" role="alert">
                     There are no support tickets for your account.
@@ -196,6 +202,55 @@
                 </div>
             </div>
         </xpath>
+    </template>
+
+    <template id="portal_new_ticket" name="New Support Ticket">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">New Ticket</t>
+            </t>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <t t-if="error == 'subject'">
+                        <div class="alert alert-danger" role="alert">
+                            Please describe what you need help with.
+                        </div>
+                    </t>
+
+                    <form action="/my/tickets/new/submit" method="post">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="new_ticket_subject">Subject</label>
+                            <input type="text" class="form-control" id="new_ticket_subject" name="subject"
+                                   required="required" t-att-value="formatted.get('subject')"/>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="new_ticket_priority">Priority</label>
+                            <select class="form-select" id="new_ticket_priority" name="priority">
+                                <option value="0" t-att-selected="formatted.get('priority') == '0' or None">Low</option>
+                                <option value="1" t-att-selected="formatted.get('priority', '1') == '1' or None">Normal</option>
+                                <option value="2" t-att-selected="formatted.get('priority') == '2' or None">High</option>
+                                <option value="3" t-att-selected="formatted.get('priority') == '3' or None">Urgent</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="new_ticket_description">What do you need help with?</label>
+                            <textarea class="form-control" id="new_ticket_description" name="description"
+                                      rows="6" t-esc="formatted.get('description') or ''"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Submit Ticket</button>
+                        <a href="/my/tickets" class="btn btn-link">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </t>
     </template>
 
 </odoo>
