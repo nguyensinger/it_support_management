@@ -59,10 +59,26 @@ class ItSupportCustomerPortal(CustomerPortal):
     @http.route(['/my/tickets/new'], type='http', auth='user', website=True)
     def portal_new_ticket_form(self, **kw):
         values = self._prepare_portal_layout_values()
+        customer = request.env.user.partner_id.commercial_partner_id
+        is_company = customer.is_company
+
+        devices = request.env['it.customer.device']
+        existing_end_user = request.env['it.support.end.user']
+        if is_company:
+            devices = devices.sudo().search([('customer_id', '=', customer.id)], order='name')
+            partner_email = request.env.user.partner_id.email
+            if partner_email:
+                existing_end_user = existing_end_user.sudo().search(
+                    [('customer_id', '=', customer.id), ('email', '=', partner_email)], limit=1
+                )
+
         values.update({
             'page_name': 'ticket',
             'error': kw.get('error'),
             'formatted': dict(kw),
+            'is_company': is_company,
+            'devices': devices,
+            'existing_department': existing_end_user.department or '',
         })
         return request.render('it_support_management.portal_new_ticket', values)
 
@@ -82,12 +98,58 @@ class ItSupportCustomerPortal(CustomerPortal):
         # customer_id is derived from the logged-in user, never taken from client
         # input - a portal user must not be able to create a ticket under a
         # different customer's name just by tampering with a form field.
-        customer = request.env.user.partner_id.commercial_partner_id
+        partner = request.env.user.partner_id
+        customer = partner.commercial_partner_id
+
+        end_user = request.env['it.support.end.user']
+        device = request.env['it.customer.device']
+        if customer.is_company:
+            # Who's actually asking, and from which machine - without this a
+            # ticket from a company customer just says "the company", which
+            # isn't enough for an agent to know who to call or what to remote
+            # into. Match/update the requester's own end-user record (by
+            # email, under this customer) rather than trusting a free-typed
+            # name that could collide with someone else's existing record.
+            EndUser = request.env['it.support.end.user'].sudo()
+            department = (post.get('department') or '').strip()
+            if partner.email:
+                end_user = EndUser.search(
+                    [('customer_id', '=', customer.id), ('email', '=', partner.email)], limit=1
+                )
+            if end_user:
+                if department and department != end_user.department:
+                    end_user.write({'department': department})
+            else:
+                end_user = EndUser.create({
+                    'name': partner.name,
+                    'email': partner.email,
+                    'phone': partner.phone,
+                    'department': department,
+                    'customer_id': customer.id,
+                })
+
+            device_id = post.get('device_id')
+            device_name = (post.get('device_name') or '').strip()
+            Device = request.env['it.customer.device'].sudo()
+            if device_id:
+                try:
+                    device = Device.browse(int(device_id)).exists().filtered(lambda d: d.customer_id == customer)
+                except ValueError:
+                    device = Device
+            elif device_name:
+                device = Device.search([('customer_id', '=', customer.id), ('name', '=', device_name)], limit=1)
+                if not device:
+                    device = Device.create({'name': device_name, 'customer_id': customer.id, 'user_id': end_user.id})
+                elif not device.user_id:
+                    device.write({'user_id': end_user.id})
+
         ticket = request.env['it.support.ticket'].sudo().create({
             'customer_id': customer.id,
             'subject': subject,
             'description': Markup('<p>%s</p>') % description if description else False,
             'priority': priority,
+            'end_user_id': end_user.id if end_user else False,
+            'device_id': device.id if device else False,
         })
 
         # Cap at 10 files / 10MB each - generous for photos/screenshots, not

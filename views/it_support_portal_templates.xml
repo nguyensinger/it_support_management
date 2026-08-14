@@ -142,6 +142,10 @@
                                     <h6><small class="text-muted">Requested By</small></h6>
                                     <span t-out="ticket.sudo().end_user_id.name"/>
                                 </div>
+                                <div t-if="ticket.end_user_id.department">
+                                    <h6><small class="text-muted">Department</small></h6>
+                                    <span t-out="ticket.sudo().end_user_id.department"/>
+                                </div>
                                 <div t-if="ticket.agent_id">
                                     <h6><small class="text-muted">IT Support Agent</small></h6>
                                     <span t-out="ticket.sudo().agent_id.name"/>
@@ -257,6 +261,32 @@
                             <textarea class="form-control" id="new_ticket_description" name="description"
                                       rows="6" t-esc="formatted.get('description') or ''"></textarea>
                         </div>
+
+                        <t t-if="is_company">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="new_ticket_department">Your Department</label>
+                                    <input type="text" class="form-control" id="new_ticket_department" name="department"
+                                           t-att-value="formatted.get('department') or existing_department"/>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="new_ticket_device_id">Which computer is this about?</label>
+                                    <select class="form-select" id="new_ticket_device_id" name="device_id">
+                                        <option value="">Not sure / not listed</option>
+                                        <t t-foreach="devices" t-as="device">
+                                            <option t-att-value="device.id"
+                                                    t-att-selected="str(device.id) == formatted.get('device_id') or None"
+                                                    t-esc="device.name"/>
+                                        </t>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="new_ticket_device_name">Computer name (only if not listed above)</label>
+                                <input type="text" class="form-control" id="new_ticket_device_name" name="device_name"
+                                       placeholder="e.g. PC-ACCOUNTING-01" t-att-value="formatted.get('device_name')"/>
+                            </div>
+                        </t>
 
                         <div class="mb-3">
                             <label class="form-label" for="new_ticket_attachments">Attach photos or screenshots (optional)</label>
