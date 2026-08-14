@@ -2,13 +2,15 @@
 <odoo>
 
     <!-- Online payment is disabled for VM Tech customers (manual payment methods
-         only - EFT, e-Transfer, cheque). This "Invoices to pay" alert + its Pay
-         Now button is independent of that toggle (driven purely by overdue due
-         dates), so switch it off too - same effect as unchecking it from the
-         portal's own Customize menu. -->
-    <record id="account_payment.portal_my_home_account_payment" model="ir.ui.view">
-        <field name="active">False</field>
-    </record>
+         only - EFT, e-Transfer, cheque). Keep the "Invoices to pay" alert so
+         customers still see they have something outstanding, but drop the Pay
+         Now button (it's independent of the enable_portal_payment toggle already
+         switched off, so it would otherwise still show and mislead customers
+         into thinking online payment works). Priority 20 so it runs after
+         account_payment's own insertion (default priority 16). -->
+    <template id="portal_docs_entry_hide_pay_now" inherit_id="portal.portal_docs_entry" priority="20">
+        <xpath expr="//button[@t-if='show_pay_overdue_invoices_button']" position="replace"/>
+    </template>
 
     <template id="portal_my_home_menu_ticket" name="Portal layout: ticket menu entries"
               inherit_id="portal.portal_breadcrumbs" priority="30">
