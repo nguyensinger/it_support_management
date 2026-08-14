@@ -40,6 +40,19 @@
                position="replace"/>
     </template>
 
+    <!-- account_payment adds its 2 "Pay Now" columns after the Amount Due header
+         but after the LAST td in each body row (which is Status) - a structural
+         mismatch that shifts the Status header 2 columns right of the actual
+         Status data. Now that online payment is disabled (no more Pay Now button
+         anywhere), these columns are dead weight - drop them so the table lines
+         up again. Priority 20 so it runs after account_payment's own insertion. -->
+    <template id="portal_my_invoices_realign" inherit_id="account.portal_my_invoices" priority="20">
+        <xpath expr="//tr[hasclass('active')]/th[@name='amount_due']/following-sibling::th[1]" position="replace"/>
+        <xpath expr="//tr[hasclass('active')]/th[@name='amount_due']/following-sibling::th[1]" position="replace"/>
+        <xpath expr="//t[@t-foreach='invoices']/tr/td[last()]" position="replace"/>
+        <xpath expr="//t[@t-foreach='invoices']/tr/td[last()]" position="replace"/>
+    </template>
+
     <template id="portal_my_tickets" name="My Tickets">
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs_searchbar" t-value="True"/>
