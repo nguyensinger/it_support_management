@@ -156,7 +156,7 @@ class ItSupportWebsiteSignup(http.Controller):
             'in with this same email once you\'ve activated your account above.'
         ) % base_url
 
-        template = request.env.ref('auth_signup.portal_set_password_email')
+        template = request.env.ref('auth_signup.portal_set_password_email').sudo()
         template.with_context(welcome_message=welcome_message).send_mail(user.id, force_send=True)
 
         return request.redirect('/signup-account?success=1')
