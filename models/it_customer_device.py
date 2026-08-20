@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import secrets
+
 from odoo import api, fields, models, _
 
 
@@ -77,6 +79,17 @@ class ItCustomerDevice(models.Model):
             'domain': [('device_id', '=', self.id)],
             'context': {'default_device_id': self.id, 'default_customer_id': self.customer_id.id},
         }
+
+    def _ensure_agent_api_key(self):
+        """Mint this device's own dedicated API key if it doesn't have one yet -
+        called right after a successful /api/v1/device/pair. This is the ONLY
+        time the plaintext value is ever available; the client stores it locally
+        and uses it for every call afterward (heartbeat, tickets, chat), so the
+        end user never has to know or type any API key themselves."""
+        self.ensure_one()
+        if not self.agent_api_key:
+            self.agent_api_key = secrets.token_hex(32)
+        return self.agent_api_key
 
     def heartbeat(self, vals=None):
         """Called from the API when the desktop agent sends a heartbeat signal.

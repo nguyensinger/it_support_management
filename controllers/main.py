@@ -174,6 +174,7 @@ class ItSupportApiController(http.Controller):
             return _json_error(str(e))
 
         device = self._register_device(pairing.customer_id, kw)
+        agent_api_key = device._ensure_agent_api_key()
         pairing.write({'used': True, 'device_id': device.id})
 
         return _json_ok({
@@ -182,6 +183,10 @@ class ItSupportApiController(http.Controller):
             'state': device.state,
             'customer_id': pairing.customer_id.id,
             'customer_name': pairing.customer_id.name,
+            # The client stores this and uses it as its Bearer token for every
+            # call from now on (heartbeat, tickets, chat) - this response is the
+            # only time it's ever sent in plaintext.
+            'api_key': agent_api_key,
         })
 
     @http.route('/api/v1/device/<int:device_id>/heartbeat', type='jsonrpc', auth='it_support_api_key',
