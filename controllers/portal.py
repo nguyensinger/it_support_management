@@ -78,14 +78,19 @@ class ItSupportCustomerPortal(CustomerPortal):
         # computer paired, and the code in the email is enough for that on its
         # own. Matched/created the same way as self-signup: by email, under
         # the inviter's own company, never trusting a name alone.
+        customer = request.env.user.partner_id.commercial_partner_id
         Partner = request.env['res.partner'].sudo()
         invitee = Partner.search([('email', '=', email)], limit=1)
         if not invitee:
-            customer = request.env.user.partner_id.commercial_partner_id
             invitee = Partner.create({'name': name, 'email': email, 'parent_id': customer.id})
 
         Pairing = request.env['it.support.device.pairing.code'].sudo()
-        pairing = Pairing.create_for_partner(invitee, validity_minutes=INVITE_CODE_VALIDITY_MINUTES)
+        # customer=customer (NOT derived from invitee.commercial_partner_id):
+        # the email typed in may match a partner that already exists for an
+        # unrelated reason (a standalone signup with no company, or worse, a
+        # contact belonging to a different customer entirely) - the code must
+        # still be pinned to the company that's actually doing the inviting.
+        pairing = Pairing.create_for_partner(invitee, validity_minutes=INVITE_CODE_VALIDITY_MINUTES, customer=customer)
 
         template = request.env.ref('it_support_management.mail_template_device_invite').sudo()
         template.send_mail(pairing.id, force_send=True)

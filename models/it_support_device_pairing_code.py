@@ -44,15 +44,28 @@ class ItSupportDevicePairingCode(models.Model):
         raise UserError(_('Could not generate a unique pairing code, please try again.'))
 
     @api.model
-    def create_for_partner(self, partner, validity_minutes=CODE_VALIDITY_MINUTES):
+    def create_for_partner(self, partner, validity_minutes=CODE_VALIDITY_MINUTES, customer=None):
         """One active code per requester/invitee at a time - generating a new one
         silently invalidates any earlier unused code instead of letting several
-        pile up."""
+        pile up.
+
+        `customer` lets the caller pin the code to a SPECIFIC company rather than
+        trusting partner.commercial_partner_id - needed for the "invite a
+        teammate" flow, where the email typed in might match a partner that
+        already exists in the system for an unrelated reason (e.g. an earlier
+        standalone signup with no company at all, or - worse - a contact that
+        belongs to a completely different customer). Silently deriving
+        customer_id from that partner's own record would attribute the device
+        to whatever company its pre-existing record happens to carry, not the
+        company that's actually doing the inviting. Self-service /my/device-
+        pairing (inviting yourself) doesn't have this problem - the caller IS
+        the partner - so it keeps the old default.
+        """
         self.search([('partner_id', '=', partner.id), ('used', '=', False)]).write({'used': True})
         return self.create({
             'code': self._generate_code(),
             'partner_id': partner.id,
-            'customer_id': partner.commercial_partner_id.id,
+            'customer_id': (customer or partner.commercial_partner_id).id,
             'expires_at': fields.Datetime.now() + timedelta(minutes=validity_minutes),
         })
 
