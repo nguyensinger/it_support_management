@@ -302,4 +302,44 @@
         </t>
     </template>
 
+    <template id="portal_device_pairing" name="Desktop Client Pairing">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Set Up Desktop Client</t>
+            </t>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-7">
+                    <p class="mb-4">
+                        Install the VM TECH Support Client (<a href="/download">download here</a>) if you
+                        haven't already, then enter this code when it asks - no need to know any technical
+                        setup details, just fill in your own name and department when prompted.
+                    </p>
+
+                    <t t-if="pairing">
+                        <div class="card p-4 text-center shadow-sm mb-3">
+                            <div class="text-muted mb-1">Your Pairing Code</div>
+                            <div style="font-size: 2.5rem; font-weight: bold; letter-spacing: 0.3rem;" t-esc="pairing.code"/>
+                            <div class="text-muted small mt-2">
+                                Valid until <span t-field="pairing.expires_at"/> - one-time use.
+                            </div>
+                        </div>
+                        <form action="/my/device-pairing/generate" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <button type="submit" class="btn btn-outline-secondary">Generate a New Code</button>
+                        </form>
+                    </t>
+                    <t t-else="">
+                        <form action="/my/device-pairing/generate" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <button type="submit" class="btn btn-primary">Generate Pairing Code</button>
+                        </form>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
 </odoo>

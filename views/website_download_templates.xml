@@ -55,6 +55,24 @@
                                 </t>
                             </div>
                         </div>
+
+                        <div class="text-center mt-4">
+                            <t t-if="not request.env.user._is_public()">
+                                <a href="/my/device-pairing" class="btn btn-outline-primary">
+                                    <i class="fa fa-key me-2"/>Get Your Pairing Code
+                                </a>
+                                <p class="text-muted small mt-2">
+                                    Use this to finish setting up the client - no technical details needed.
+                                </p>
+                            </t>
+                            <t t-else="">
+                                <p class="text-muted">
+                                    <a href="/web/login?redirect=/download">Sign in</a> (or
+                                    <a href="/signup-account">create an account</a>) to get a pairing code
+                                    for the client setup.
+                                </p>
+                            </t>
+                        </div>
                     </div>
                 </section>
             </div>

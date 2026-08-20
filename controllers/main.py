@@ -3,7 +3,7 @@ import logging
 import time
 
 from odoo import http, fields
-from odoo.exceptions import AccessDenied
+from odoo.exceptions import AccessDenied, UserError
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
@@ -50,37 +50,14 @@ class ItSupportApiController(http.Controller):
     # DESKTOP AGENT ENDPOINTS
     # ---------------------------------------------------------------
 
-    @http.route('/api/v1/device/register', type='jsonrpc', auth='it_support_api_key', methods=['POST'], csrf=False)
-    def device_register(self, **kw):
-        """Called by the desktop agent on first install to register the device.
-        Expected payload:
-        {
-          "customer_id": 12,                 # res.partner id (customer) - or use a
-                                              # customer_code if available
-          "hostname": "PC-ACCOUNTING-01",
-          "serial_number": "SN12345",
-          "os_info": "Windows 11 Pro",
-          "cpu_info": "Intel i5-12400",
-          "ram_gb": 16,
-          "disk_info": "512GB SSD",
-          "mac_address": "00:1A:2B:3C:4D:5E",
-          "ip_address": "192.168.1.50",
-          "ultraview_id": "987654321",
-          "end_user_name": "John Smith",     # optional, creates an end_user if missing
-          "end_user_email": "j.smith@customer.com",
-          "end_user_phone": "778 288 3053",  # optional
-          "end_user_department": "Accounting"  # optional
-        }
-        """
+    @classmethod
+    def _register_device(cls, customer, kw):
+        """Shared by /api/v1/device/register (trusted client, customer_id taken
+        from the payload) and /api/v1/device/pair (customer resolved securely
+        from a pairing code instead) - everything below this point is identical
+        either way, only how `customer` was resolved differs."""
         Device = request.env['it.customer.device'].sudo()
         EndUser = request.env['it.support.end.user'].sudo()
-
-        customer_id = kw.get('customer_id')
-        if not customer_id:
-            return _json_error('Missing customer_id.')
-        customer = request.env['res.partner'].sudo().browse(customer_id)
-        if not customer.exists():
-            return _json_error('Customer not found.', status=404)
 
         end_user = False
         if kw.get('end_user_email'):
@@ -133,10 +110,78 @@ class ItSupportApiController(http.Controller):
         else:
             device = Device.create(vals)
 
+        return device
+
+    @http.route('/api/v1/device/register', type='jsonrpc', auth='it_support_api_key', methods=['POST'], csrf=False)
+    def device_register(self, **kw):
+        """Called by the desktop agent on first install to register the device.
+        Expected payload:
+        {
+          "customer_id": 12,                 # res.partner id (customer) - or use a
+                                              # customer_code if available
+          "hostname": "PC-ACCOUNTING-01",
+          "serial_number": "SN12345",
+          "os_info": "Windows 11 Pro",
+          "cpu_info": "Intel i5-12400",
+          "ram_gb": 16,
+          "disk_info": "512GB SSD",
+          "mac_address": "00:1A:2B:3C:4D:5E",
+          "ip_address": "192.168.1.50",
+          "ultraview_id": "987654321",
+          "end_user_name": "John Smith",     # optional, creates an end_user if missing
+          "end_user_email": "j.smith@customer.com",
+          "end_user_phone": "778 288 3053",  # optional
+          "end_user_department": "Accounting"  # optional
+        }
+        """
+        customer_id = kw.get('customer_id')
+        if not customer_id:
+            return _json_error('Missing customer_id.')
+        customer = request.env['res.partner'].sudo().browse(customer_id)
+        if not customer.exists():
+            return _json_error('Customer not found.', status=404)
+
+        device = self._register_device(customer, kw)
         return _json_ok({
             'device_id': device.id,
             'device_name': device.name,
             'state': device.state,
+        })
+
+    @http.route('/api/v1/device/pair', type='jsonrpc', auth='public', methods=['POST'], csrf=False)
+    def device_pair(self, **kw):
+        """Passwordless, keyless first-install path for the Desktop Client: the
+        customer generates a short-lived pairing code from their portal account
+        (/my/device-pairing, requires being logged in there), then the end user
+        just types that code plus their own name/department into the client -
+        no internal API key or numeric customer_id for them to know. customer_id
+        is resolved from the code (tied to a real portal login), never trusted
+        from the request body, so this stays safe as a public/unauthenticated
+        route. Same payload as /api/v1/device/register, but "pairing_code"
+        instead of "customer_id".
+        """
+        code_str = (kw.get('pairing_code') or '').strip().upper()
+        if not code_str:
+            return _json_error('Missing pairing_code.')
+
+        Pairing = request.env['it.support.device.pairing.code'].sudo()
+        pairing = Pairing.search([('code', '=', code_str)], limit=1)
+        if not pairing:
+            return _json_error('Invalid pairing code.', status=404)
+        try:
+            pairing._check_valid()
+        except UserError as e:
+            return _json_error(str(e))
+
+        device = self._register_device(pairing.customer_id, kw)
+        pairing.write({'used': True, 'device_id': device.id})
+
+        return _json_ok({
+            'device_id': device.id,
+            'device_name': device.name,
+            'state': device.state,
+            'customer_id': pairing.customer_id.id,
+            'customer_name': pairing.customer_id.name,
         })
 
     @http.route('/api/v1/device/<int:device_id>/heartbeat', type='jsonrpc', auth='it_support_api_key',

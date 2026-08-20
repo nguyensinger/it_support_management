@@ -2,7 +2,7 @@
 from markupsafe import Markup
 from werkzeug.urls import url_encode
 
-from odoo import http, _
+from odoo import http, fields, _
 from odoo.exceptions import AccessError, MissingError
 from odoo.http import request
 from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
@@ -23,6 +23,30 @@ class ItSupportCustomerPortal(CustomerPortal):
             'name': {'label': _('Reference'), 'order': 'name desc'},
             'state': {'label': _('Status'), 'order': 'state'},
         }
+
+    @http.route(['/my/device-pairing'], type='http', auth='user', website=True)
+    def portal_device_pairing(self, **kw):
+        values = self._prepare_portal_layout_values()
+        Pairing = request.env['it.support.device.pairing.code'].sudo()
+        pairing = Pairing.search([
+            ('partner_id', '=', request.env.user.partner_id.id),
+            ('used', '=', False),
+        ], order='create_date desc', limit=1)
+        # Drop it silently once expired - the template just goes back to
+        # showing the "Generate" button, no need to surface an error state.
+        if pairing and pairing.expires_at < fields.Datetime.now():
+            pairing = Pairing
+
+        values.update({
+            'page_name': 'device_pairing',
+            'pairing': pairing,
+        })
+        return request.render('it_support_management.portal_device_pairing', values)
+
+    @http.route(['/my/device-pairing/generate'], type='http', auth='user', website=True, methods=['POST'], csrf=True)
+    def portal_device_pairing_generate(self, **post):
+        request.env['it.support.device.pairing.code'].sudo().create_for_partner(request.env.user.partner_id)
+        return request.redirect('/my/device-pairing')
 
     @http.route(['/my/tickets', '/my/tickets/page/<int:page>'], type='http', auth='user', website=True)
     def portal_my_tickets(self, page=1, sortby=None, **kw):

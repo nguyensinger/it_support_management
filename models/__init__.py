@@ -18,6 +18,7 @@ from . import it_support_agent_commission_wizard
 from . import it_support_agent_payroll
 from . import it_support_agent_payroll_generate_wizard
 from . import it_support_agent_device
+from . import it_support_device_pairing_code
 from . import it_support_sla
 from . import it_support_fcm_service
 from . import it_support_booking_request
