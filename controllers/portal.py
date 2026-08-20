@@ -6,6 +6,9 @@ from odoo import http, fields, _
 from odoo.exceptions import AccessError, MissingError
 from odoo.http import request
 from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
+from odoo.tools import email_normalize
+
+from odoo.addons.it_support_management.models.it_support_device_pairing_code import INVITE_CODE_VALIDITY_MINUTES
 
 
 class ItSupportCustomerPortal(CustomerPortal):
@@ -47,6 +50,47 @@ class ItSupportCustomerPortal(CustomerPortal):
     def portal_device_pairing_generate(self, **post):
         request.env['it.support.device.pairing.code'].sudo().create_for_partner(request.env.user.partner_id)
         return request.redirect('/my/device-pairing')
+
+    @http.route(['/my/team/invite'], type='http', auth='user', website=True)
+    def portal_team_invite(self, **kw):
+        values = self._prepare_portal_layout_values()
+        values.update({
+            'page_name': 'team_invite',
+            'error': kw.get('error'),
+            'success': kw.get('success'),
+            'formatted': dict(kw),
+        })
+        return request.render('it_support_management.portal_team_invite', values)
+
+    @http.route(['/my/team/invite/submit'], type='http', auth='user', website=True, methods=['POST'], csrf=True)
+    def portal_team_invite_submit(self, **post):
+        name = (post.get('name') or '').strip()
+        email = email_normalize(post.get('email', '').strip()) if post.get('email') else False
+
+        if not name or not email:
+            return request.redirect('/my/team/invite?%s' % url_encode({
+                'error': 'fields',
+                'name': post.get('name', ''),
+                'email': post.get('email', ''),
+            }))
+
+        # A teammate doesn't get a portal login here - they only need their
+        # computer paired, and the code in the email is enough for that on its
+        # own. Matched/created the same way as self-signup: by email, under
+        # the inviter's own company, never trusting a name alone.
+        Partner = request.env['res.partner'].sudo()
+        invitee = Partner.search([('email', '=', email)], limit=1)
+        if not invitee:
+            customer = request.env.user.partner_id.commercial_partner_id
+            invitee = Partner.create({'name': name, 'email': email, 'parent_id': customer.id})
+
+        Pairing = request.env['it.support.device.pairing.code'].sudo()
+        pairing = Pairing.create_for_partner(invitee, validity_minutes=INVITE_CODE_VALIDITY_MINUTES)
+
+        template = request.env.ref('it_support_management.mail_template_device_invite').sudo()
+        template.send_mail(pairing.id, force_send=True)
+
+        return request.redirect('/my/team/invite?success=1')
 
     @http.route(['/my/tickets', '/my/tickets/page/<int:page>'], type='http', auth='user', website=True)
     def portal_my_tickets(self, page=1, sortby=None, **kw):

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Sent when a company's portal user invites a colleague to set up the
+             VM TECH Support Client - unlike the Sign Up welcome email, this
+             recipient does NOT get a portal login: they only need their
+             computer paired, which the code below is enough for on its own. -->
+        <record id="mail_template_device_invite" model="mail.template">
+            <field name="name">Device Pairing Invite</field>
+            <field name="model_id" ref="model_it_support_device_pairing_code"/>
+            <field name="subject">{{ object.customer_id.name }} invited you to set up the VM TECH Support Client</field>
+            <field name="email_to">{{ object.partner_id.email }}</field>
+            <field name="body_html" type="html">
+<table border="0" cellpadding="0" cellspacing="0" style="padding-top: 16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; color: #454748; width: 100%; border-collapse:separate;">
+    <tr><td align="center">
+        <table border="0" cellpadding="0" cellspacing="0" width="590" style="padding: 16px; background-color: white; color: #454748; border-collapse:separate;">
+            <tbody>
+                <!-- HEADER -->
+                <tr>
+                    <td align="center" style="min-width: 590px;">
+                        <table border="0" cellpadding="0" cellspacing="0" width="590" style="min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;">
+                            <tr>
+                                <td valign="middle">
+                                    <span style="font-size: 10px;">VM TECH Support</span><br/>
+                                    <span style="font-size: 20px; font-weight: bold;" t-out="object.partner_id.name or ''">John Smith</span>
+                                </td>
+                                <td valign="middle" align="right">
+                                    <img src="/logo.png" style="padding: 0px; margin: 0px; height: auto; width: 80px;"/>
+                                </td>
+                            </tr>
+                            <tr><td colspan="2" style="text-align:center;">
+                                <hr width="100%" style="background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;"/>
+                            </td></tr>
+                        </table>
+                    </td>
+                </tr>
+                <!-- CONTENT -->
+                <tr>
+                    <td align="center" style="min-width: 590px;">
+                        <table border="0" cellpadding="0" cellspacing="0" width="590" style="min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;">
+                            <tr><td valign="top" style="font-size: 13px;">
+                                <div>
+                                    Hi <t t-out="object.partner_id.name or ''">John Smith</t>,<br/><br/>
+                                    <t t-out="object.create_uid.name or ''">Someone</t> at <b t-out="object.customer_id.name or ''">Your Company</b>
+                                    set up VM TECH IT support for your computer. Here's what to do:
+                                    <ol style="margin: 12px 0px; padding-left: 20px;">
+                                        <li style="margin-bottom: 8px;">
+                                            Download and install the VM TECH Support Client:
+                                            <div style="margin: 8px 0px;">
+                                                <a t-attf-href="{{ object.get_base_url() }}/download" style="display: inline-block; padding: 10px 16px; text-decoration: none; font-size: 12px; background-color: #714B67; color: #FFFFFF; border-radius: 5px;">
+                                                    <strong>Download the Client</strong>
+                                                </a>
+                                            </div>
+                                        </li>
+                                        <li style="margin-bottom: 8px;">Open it - on first run it asks for a Pairing Code.</li>
+                                        <li style="margin-bottom: 8px;">
+                                            Enter this code, along with your own name and department:
+                                            <div style="margin: 12px 0px; text-align: center; padding: 16px; background-color: #F1F1F1; border-radius: 8px;">
+                                                <span style="font-size: 28px; font-weight: bold; letter-spacing: 0.3em;" t-out="object.code">A1B2C3</span>
+                                            </div>
+                                        </li>
+                                        <li>That's it - you can now create support tickets and chat with VM TECH directly from your desktop.</li>
+                                    </ol>
+                                    <b>This code expires on <t t-out="format_datetime(object.expires_at, tz='America/Vancouver', dt_format='medium')">a date</t> and can only be used once.</b>
+                                    If it expires before you get to it, ask whoever invited you to send a new one.
+                                </div>
+                            </td></tr>
+                            <tr><td style="text-align:center;">
+                                <hr width="100%" style="background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;"/>
+                            </td></tr>
+                        </table>
+                    </td>
+                </tr>
+                <!-- FOOTER -->
+                <tr>
+                    <td align="center" style="min-width: 590px;">
+                        <table border="0" cellpadding="0" cellspacing="0" width="590" style="min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;">
+                            <tr><td valign="middle" align="left">
+                                VM TECH
+                            </td></tr>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </td></tr>
+</table>
+            </field>
+        </record>
+
+    </data>
+</odoo>

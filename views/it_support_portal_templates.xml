@@ -337,6 +337,65 @@
                             <button type="submit" class="btn btn-primary">Generate Pairing Code</button>
                         </form>
                     </t>
+
+                    <p class="mt-4">
+                        <a href="/my/team/invite">Setting this up for a colleague instead? Invite them by email &#8594;</a>
+                    </p>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_team_invite" name="Invite Team Member">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Invite a Team Member</t>
+            </t>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-7">
+                    <p class="mb-4">
+                        Setting up VM TECH support for a colleague's computer? Enter their name and email -
+                        they'll get everything they need by email (download link, install steps, and their
+                        own pairing code). They won't get portal login access from this - only their
+                        computer gets set up.
+                    </p>
+
+                    <t t-if="success">
+                        <div class="alert alert-success" role="alert">
+                            Invitation sent! They'll get an email with the download link, setup steps, and
+                            their pairing code (valid for 7 days).
+                        </div>
+                    </t>
+                    <t t-if="error == 'fields'">
+                        <div class="alert alert-danger" role="alert">
+                            Please fill in both name and email.
+                        </div>
+                    </t>
+
+                    <form action="/my/team/invite/submit" method="post">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="invite_name">Their Full Name</label>
+                            <input type="text" class="form-control" id="invite_name" name="name"
+                                   required="required" t-att-value="formatted.get('name')"/>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="invite_email">Their Email</label>
+                            <input type="email" class="form-control" id="invite_email" name="email"
+                                   required="required" t-att-value="formatted.get('email')"/>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Send Invitation</button>
+                    </form>
+
+                    <p class="mt-4">
+                        <a href="/my/device-pairing">Setting up your own computer instead? Get a pairing code &#8594;</a>
+                    </p>
                 </div>
             </div>
         </t>
