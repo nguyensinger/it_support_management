@@ -39,6 +39,13 @@
                 <t t-set="text">Follow the status of your support tickets</t>
                 <t t-set="placeholder_count" t-value="'ticket_count'"/>
             </t>
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/it_support_management/static/src/img/device_setup.svg'"/>
+                <t t-set="title">Desktop Client Setup</t>
+                <t t-set="url" t-value="'/my/device-pairing'"/>
+                <t t-set="text">Get a pairing code, or invite a teammate to set up their computer</t>
+                <t t-set="config_card" t-value="True"/>
+            </t>
         </div>
     </template>
 
