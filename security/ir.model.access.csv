@@ -41,3 +41,4 @@ access_it_support_session_participant_agent,it.support.session.participant.agent
 access_it_support_session_participant_manager,it.support.session.participant.manager,model_it_support_session_participant,group_it_support_manager,1,1,1,1
 access_it_support_device_pairing_code_agent,it.support.device.pairing.code.agent,model_it_support_device_pairing_code,group_it_support_agent,1,0,0,0
 access_it_support_device_pairing_code_manager,it.support.device.pairing.code.manager,model_it_support_device_pairing_code,group_it_support_manager,1,1,1,1
+access_it_support_device_invite_wizard_manager,it.support.device.invite.wizard.manager,model_it_support_device_invite_wizard,group_it_support_manager,1,1,1,1

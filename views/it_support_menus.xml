@@ -58,4 +58,12 @@
         sequence="40"
         groups="it_support_management.group_it_support_manager"/>
 
+    <!-- Lets staff invite an end user on behalf of a chosen Company, mirroring
+         the self-service /my/team/invite flow a customer's own portal rep can
+         already use - useful when the customer asks VM Tech to just set it up
+         for them directly. -->
+    <menuitem id="menu_it_support_device_invite" name="Invite End User" parent="menu_it_support_master_data"
+              action="action_it_support_device_invite_wizard" sequence="60"
+              groups="it_support_management.group_it_support_manager"/>
+
 </odoo>

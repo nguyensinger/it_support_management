@@ -66,6 +66,7 @@ IT support service management module for customers:
         'views/it_support_agent_payroll_views.xml',
         'views/it_support_agent_payroll_generate_wizard_views.xml',
         'views/it_expense_category_views.xml',
+        'views/it_support_device_invite_wizard_views.xml',
         'views/it_support_menus.xml',
         'views/it_project_project_views.xml',
         'views/it_project_menus.xml',
