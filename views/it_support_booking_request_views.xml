@@ -61,6 +61,8 @@
                                    invisible="not partner_id"/>
                             <field name="ticket_id" readonly="1"
                                    invisible="not ticket_id"/>
+                            <field name="payment_token_id" readonly="1"
+                                   invisible="not payment_token_id"/>
                         </group>
                     </group>
                     <group string="Message">

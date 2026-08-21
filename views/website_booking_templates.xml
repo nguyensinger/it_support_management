@@ -33,6 +33,19 @@
                                         We couldn't verify this submission wasn't sent by a bot. Please try again.
                                     </div>
                                 </t>
+                                <t t-elif="'login_required' in error_fields">
+                                    <div class="alert alert-danger" role="alert">
+                                        Booking as an individual requires an account first -
+                                        <a href="/web/login?redirect=/booking">sign in</a> or
+                                        <a href="/signup-account">create one</a>, then try again.
+                                    </div>
+                                </t>
+                                <t t-elif="'card_required' in error_fields">
+                                    <div class="alert alert-danger" role="alert">
+                                        Please <a href="/my/payment_method">add a payment method</a> to your
+                                        account first, then come back and submit your booking.
+                                    </div>
+                                </t>
                                 <t t-elif="error_fields">
                                     <div class="alert alert-danger" role="alert">
                                         Please fill in the required field(s):
@@ -81,16 +94,36 @@
                                             <input class="form-check-input" type="radio" name="company_type"
                                                    id="booking_type_person" value="person"
                                                    t-att-checked="formatted.get('company_type', 'person') == 'person' or None"
-                                                   onchange="document.getElementById('booking_company_wrap').classList.toggle('d-none', this.value !== 'company')"/>
+                                                   onchange="document.getElementById('booking_company_wrap').classList.toggle('d-none', this.value !== 'company'); document.getElementById('booking_person_notice').classList.toggle('d-none', this.value !== 'person')"/>
                                             <label class="form-check-label" for="booking_type_person">Person</label>
                                         </div>
                                         <div class="form-check form-check-inline">
                                             <input class="form-check-input" type="radio" name="company_type"
                                                    id="booking_type_company" value="company"
                                                    t-att-checked="formatted.get('company_type') == 'company' or None"
-                                                   onchange="document.getElementById('booking_company_wrap').classList.toggle('d-none', this.value !== 'company')"/>
+                                                   onchange="document.getElementById('booking_company_wrap').classList.toggle('d-none', this.value !== 'company'); document.getElementById('booking_person_notice').classList.toggle('d-none', this.value !== 'person')"/>
                                             <label class="form-check-label" for="booking_type_company">Company</label>
                                         </div>
+                                    </div>
+
+                                    <div id="booking_person_notice"
+                                         t-attf-class="alert alert-info mb-3 #{'' if formatted.get('company_type', 'person') == 'person' else 'd-none'}">
+                                        <t t-if="not is_logged_in">
+                                            Booking as an individual requires an account so we can securely
+                                            save a payment method on file (nothing is charged now - only after
+                                            the visit, based on the actual invoice).
+                                            <a href="/web/login?redirect=/booking">Sign in</a> or
+                                            <a href="/signup-account">create an account</a> first.
+                                        </t>
+                                        <t t-elif="not has_payment_token">
+                                            Almost there - please
+                                            <a href="/my/payment_method">add a payment method</a> to your
+                                            account, then come back here to finish booking.
+                                        </t>
+                                        <t t-else="">
+                                            You have a saved payment method on file - nothing is charged now,
+                                            only after the visit based on the actual invoice.
+                                        </t>
                                     </div>
 
                                     <div class="mb-3">

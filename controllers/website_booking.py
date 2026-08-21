@@ -40,6 +40,9 @@ class ItSupportWebsiteBooking(http.Controller):
         formatted = dict(self._get_partner_prefill())
         formatted.update(kw)
 
+        user = request.env.user
+        is_logged_in = not user._is_public()
+
         return request.render('it_support_management.website_booking_page', {
             'success': kw.get('success'),
             'error_fields': (kw.get('error_fields') or '').split(',') if kw.get('error_fields') else [],
@@ -52,7 +55,21 @@ class ItSupportWebsiteBooking(http.Controller):
             'provinces': request.env['res.country.state'].sudo().search(
                 [('country_id', '=', request.env.ref('base.ca').id)], order='name'
             ),
+            'is_logged_in': is_logged_in,
+            'has_payment_token': is_logged_in and self._get_person_payment_token(user.partner_id).exists(),
         })
+
+    @staticmethod
+    def _get_person_payment_token(partner):
+        """Individual customers need their own saved card - deliberately matched
+        on the exact partner, not commercial_partner_id (which would let a card
+        saved by one person "cover" a completely different person just because
+        they happen to share a parent contact - not the sharing behaviour we
+        want for individual bookings, unlike Company-side charging elsewhere in
+        Odoo's own token-ownership checks)."""
+        return request.env['payment.token'].sudo().search([
+            ('partner_id', '=', partner.id),
+        ], limit=1, order='create_date desc')
 
     @staticmethod
     def _get_partner_prefill():
@@ -130,6 +147,20 @@ class ItSupportWebsiteBooking(http.Controller):
         if missing:
             return redirect_with_error(missing)
 
+        # Individual customers must be logged in with a saved card before we'll
+        # take the booking - Company customers are unaffected, they stay on the
+        # existing invoice/manual-payment process. Nothing is charged here; the
+        # token is just attached so staff can charge it later against the real
+        # invoice once the work is done.
+        payment_token = request.env['payment.token']
+        if company_type == 'person':
+            user = request.env.user
+            if user._is_public():
+                return redirect_with_error(['login_required'])
+            payment_token = self._get_person_payment_token(user.partner_id)
+            if not payment_token:
+                return redirect_with_error(['card_required'])
+
         requested_start = Booking.local_to_utc_datetime(selected_date, start_hour)
         Booking.create({
             'company_type': company_type,
@@ -144,6 +175,7 @@ class ItSupportWebsiteBooking(http.Controller):
             'requested_start': requested_start,
             'duration': 1.0,
             'message': (post.get('message') or '').strip(),
+            'payment_token_id': payment_token.id if payment_token else False,
         })
 
         return request.redirect('/booking?success=1')

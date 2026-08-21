@@ -65,6 +65,13 @@ class ItSupportBookingRequest(models.Model):
              'Agent app (or manually from this form) - lets staff see at a glance that a booking '
              'was already actioned and where it ended up.',
     )
+    payment_token_id = fields.Many2one(
+        'payment.token', string='Saved Card', readonly=True,
+        help='Individual (Person) bookings require a saved card on file before the request can '
+             'be submitted - this is that card. Not required for Company bookings, which stay on '
+             'the existing invoice/manual-payment process. Staff can charge this token once the '
+             'work is invoiced; nothing is charged automatically at booking time.',
+    )
 
     @api.model_create_multi
     def create(self, vals_list):

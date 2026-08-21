@@ -28,6 +28,7 @@ IT support service management module for customers:
         'contacts',
         'account',
         'account_payment',
+        'payment',
         'product',
         'sale',
         'website',
