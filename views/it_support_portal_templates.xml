@@ -39,6 +39,12 @@
                 <t t-set="text">Follow the status of your support tickets</t>
                 <t t-set="placeholder_count" t-value="'ticket_count'"/>
             </t>
+        </div>
+        <!-- portal_common_category is where the base template itself puts
+             Addresses / Connection &amp; Security - appending here (rather than
+             alongside Support Tickets above) puts this tile after all 4 of the
+             existing ones instead of breaking up their row. -->
+        <div id="portal_common_category" position="inside">
             <t t-call="portal.portal_docs_entry">
                 <t t-set="icon" t-value="'/it_support_management/static/src/img/device_setup.svg'"/>
                 <t t-set="title">Desktop Client Setup</t>
