@@ -55,6 +55,20 @@
         </div>
     </template>
 
+    <!-- The core `payment` module adds its own "Payment methods" tile once a
+         provider (Stripe) is configured - it lands in portal_client_category,
+         which wraps after 2 tiles (Support Tickets, Your Invoices), landing it
+         alone on its own row rather than paired with Desktop Client Setup.
+         Move it into portal_common_category, right before Desktop Client Setup,
+         so the two end up sharing the last row instead. Priority 65 so it runs
+         after payment's own insertion (priority 60) has added the tile to move. -->
+    <template id="portal_my_home_move_payment_methods" inherit_id="portal.portal_my_home" priority="65">
+        <xpath expr="//div[@id='portal_common_category']/t[@t-call='portal.portal_docs_entry'][.//t[@t-set='title'][normalize-space(text())='Desktop Client Setup']]"
+               position="before">
+            <xpath expr="//div[@id='portal_client_category']/t[@t-if='methods_allowing_tokenization or existing_tokens']" position="move"/>
+        </xpath>
+    </template>
+
     <!-- VM Tech has no "Orders" business (no sale/e-commerce flow for customers) -
          drop the "Your Orders" tile that the sale module adds to the portal home,
          so Support Tickets takes its place instead. Priority 21 so it runs right
