@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="page_staff_downloads" name="Staff Downloads">
+        <t t-call="website.layout">
+            <div id="wrap">
+                <section class="s_title parallax s_parallax_is_fixed bg-black-50 pt24 pb24" data-scroll-background-ratio="1">
+                    <span class="s_parallax_bg oe_img_bg" style="background-image: url('/web/image/website.s_parallax_default_image'); background-position: 50% 0;"/>
+                    <div class="o_we_bg_filter bg-black-50"/>
+                    <div class="container">
+                        <h1>Staff Downloads</h1>
+                    </div>
+                </section>
+
+                <section class="pt64 pb64">
+                    <div class="container" style="max-width: 700px;">
+                        <p class="text-center pb32">
+                            Install VM TECH Desktop Support on your work computer to receive and
+                            handle customer tickets.
+                        </p>
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <t t-if="windows_installer">
+                                    <div class="card p-4 text-center shadow-sm h-100">
+                                        <h4 class="mb-1">VM TECH Desktop Support</h4>
+                                        <p class="text-muted mb-3">Windows - Version 1.0.0</p>
+                                        <a href="/staff/download/windows" class="btn btn-primary btn-lg mt-auto">
+                                            <i class="fa fa-download me-2"/>Download for Windows
+                                        </a>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="alert alert-warning text-center h-100" role="alert">
+                                        Windows installer is not available right now.
+                                    </div>
+                                </t>
+                            </div>
+                            <div class="col-md-6">
+                                <t t-if="mac_installer">
+                                    <div class="card p-4 text-center shadow-sm h-100">
+                                        <h4 class="mb-1">VM TECH Desktop Support</h4>
+                                        <p class="text-muted mb-3">macOS - Version 1.0.0 (Universal)</p>
+                                        <a href="/staff/download/mac" class="btn btn-primary btn-lg mt-auto">
+                                            <i class="fa fa-download me-2"/>Download for Mac
+                                        </a>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="alert alert-warning text-center h-100" role="alert">
+                                        Mac installer is not available right now.
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+
+                        <p class="text-muted small text-center mt-4">
+                            First time opening on Mac? Right-click the app and choose "Open" to
+                            get past the Gatekeeper warning (the app isn't code-signed yet).
+                        </p>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+</odoo>
