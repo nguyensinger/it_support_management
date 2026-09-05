@@ -573,6 +573,10 @@ class ItSupportApiController(http.Controller):
             domain.append(('state', '=', kw.get('state')))
         if kw.get('mine'):
             domain.append(('agent_id', '=', request.env.user.id))
+            if not kw.get('state'):
+                # "Mine" is meant as the agent's active worklist, not a full history -
+                # closed-out tickets stay visible in the Odoo backend/portal instead.
+                domain.append(('state', 'not in', ['done', 'cancelled']))
         else:
             domain.append('|')
             domain.append(('agent_id', '=', request.env.user.id))
